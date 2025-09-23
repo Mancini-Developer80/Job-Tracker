@@ -1,0 +1,60 @@
+.formTitle {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #2563eb;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.profileBox {
+  max-width: 420px;
+  margin: 2.5rem auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(30, 64, 175, 0.07);
+  padding: 2.2rem 2.5rem 2rem 2.5rem;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.form label {
+  font-weight: 500;
+  color: #1a2233;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+}
+.form input[type="text"],
+.form input[type="email"],
+.form input[type="password"],
+.form input[type="file"] {
+  padding: 0.5rem 0.9rem;
+  border: 1.5px solid #d0d7de;
+  border-radius: 6px;
+  font-size: 1.04em;
+  background: #f4f7fb;
+  color: #000;
+}
+.form button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem 1.5rem;
+  font-weight: 600;
+  font-size: 1.08em;
+  cursor: pointer;
+  margin-top: 1.2em;
+  transition: background 0.18s;
+}
+.form button:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+.message {
+  color: #2563eb;
+  margin-bottom: 1em;
+  text-align: center;
+  font-weight: 500;
+}

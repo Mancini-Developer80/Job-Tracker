@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import styles from "../components/AuthForm.module.css";
+import { useNavigate, Navigate } from "react-router-dom";
+import styles from "./Profile.module.css";
 
 const Register: React.FC = () => {
   const [name, setName] = useState("");
@@ -11,7 +11,7 @@ const Register: React.FC = () => {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { user, setUser } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -54,64 +54,57 @@ const Register: React.FC = () => {
     }
   };
 
+  if (user) return <Navigate to="/dashboard" replace />;
   return (
-    <div className={styles.formContainer}>
-      <h2 className={styles.title}>Register</h2>
-      {error && <div className={styles.error}>{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className={styles.formGroup}>
-          <label className={styles.label} htmlFor="name">
-            Name
-          </label>
+    <div className={styles.profileBox}>
+      <h2 className={styles.formTitle}>Register</h2>
+      {error && (
+        <div className={styles.message} style={{ color: "#d32f2f" }}>
+          {error}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <label>
+          Name
           <input
-            className={styles.input}
             type="text"
-            id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoComplete="name"
+            required
           />
-        </div>
-        <div className={styles.formGroup}>
-          <label className={styles.label} htmlFor="email">
-            Email
-          </label>
+        </label>
+        <label>
+          Email
           <input
-            className={styles.input}
             type="email"
-            id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="username"
+            required
           />
-        </div>
-        <div className={styles.formGroup}>
-          <label className={styles.label} htmlFor="password">
-            Password
-          </label>
+        </label>
+        <label>
+          Password
           <input
-            className={styles.input}
             type="password"
-            id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="new-password"
+            required
           />
-        </div>
-        <div className={styles.formGroup}>
-          <label className={styles.label} htmlFor="confirmPassword">
-            Confirm Password
-          </label>
+        </label>
+        <label>
+          Confirm Password
           <input
-            className={styles.input}
             type="password"
-            id="confirmPassword"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             autoComplete="new-password"
+            required
           />
-        </div>
-        <button className={styles.button} type="submit">
+        </label>
+        <button type="submit" disabled={false}>
           Register
         </button>
       </form>

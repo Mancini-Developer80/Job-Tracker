@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import styles from "../components/AuthForm.module.css";
+import { useNavigate, Navigate } from "react-router-dom";
+import styles from "./Profile.module.css";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -9,7 +9,7 @@ const Login: React.FC = () => {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { user, setUser } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -47,38 +47,37 @@ const Login: React.FC = () => {
     }
   };
 
+  if (user) return <Navigate to="/dashboard" replace />;
   return (
-    <div className={styles.formContainer}>
-      <h2 className={styles.title}>Login</h2>
-      {error && <div className={styles.error}>{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className={styles.formGroup}>
-          <label className={styles.label} htmlFor="email">
-            Email
-          </label>
+    <div className={styles.profileBox}>
+      <h2 className={styles.formTitle}>Login</h2>
+      {error && (
+        <div className={styles.message} style={{ color: "#d32f2f" }}>
+          {error}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <label>
+          Email
           <input
-            className={styles.input}
             type="email"
-            id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="username"
+            required
           />
-        </div>
-        <div className={styles.formGroup}>
-          <label className={styles.label} htmlFor="password">
-            Password
-          </label>
+        </label>
+        <label>
+          Password
           <input
-            className={styles.input}
             type="password"
-            id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
+            required
           />
-        </div>
-        <button className={styles.button} type="submit">
+        </label>
+        <button type="submit" disabled={false}>
           Login
         </button>
       </form>
@@ -88,7 +87,7 @@ const Login: React.FC = () => {
           <a
             href="/register"
             style={{
-              color: "#007bff",
+              color: "#2563eb",
               textDecoration: "underline",
               cursor: "pointer",
             }}

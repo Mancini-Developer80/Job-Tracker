@@ -2,6 +2,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { RoutePath } from "../types/routes";
 import styles from "./Navbar.module.css";
 import { useAuth } from "../context/AuthContext";
+import UserDropdown from "./UserDropdown";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -39,36 +40,9 @@ const Navbar = () => {
             )}
           </div>
           <div className={styles.navRight}>
-            {/* Show user name when logged in */}
+            {/* User dropdown menu for logged-in users */}
             {user && user.name && (
-              <span className={styles.userName}>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  style={{ marginRight: 6 }}
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle
-                    cx="10"
-                    cy="6.5"
-                    r="3.5"
-                    fill="#2563eb"
-                    fillOpacity="0.18"
-                  />
-                  <circle cx="10" cy="6.5" r="2.5" fill="#2563eb" />
-                  <ellipse
-                    cx="10"
-                    cy="15.5"
-                    rx="6"
-                    ry="3.5"
-                    fill="#2563eb"
-                    fillOpacity="0.12"
-                  />
-                </svg>
-                {user.name}
-              </span>
+              <UserDropdown user={user} onLogout={handleLogout} />
             )}
             {/* Auth links for guests, but not on home or register page */}
             {!user &&
@@ -84,12 +58,7 @@ const Navbar = () => {
                   </Link>
                 </>
               )}
-            {/* Logout for logged-in users */}
-            {user && (
-              <button className={styles.logoutButton} onClick={handleLogout}>
-                Logout
-              </button>
-            )}
+            {/* Logout now handled in dropdown */}
           </div>
         </div>
       </nav>

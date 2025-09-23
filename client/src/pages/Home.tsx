@@ -1,5 +1,6 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import styles from "./Home.module.css";
 import {
   FaLock,
@@ -10,6 +11,8 @@ import {
 } from "react-icons/fa";
 
 const Home: React.FC = () => {
+  const { user } = useAuth();
+  if (user) return <Navigate to="/dashboard" replace />;
   return (
     <div className={styles.homeContainer}>
       <h1 className={styles.title}>Welcome to Job Tracker Dashboard</h1>
