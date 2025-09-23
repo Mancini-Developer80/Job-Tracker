@@ -229,20 +229,22 @@ const Dashboard: React.FC = () => {
                     )}
                   </td>
                   <td className={styles.td}>
-                    <button
-                      onClick={() => {
-                        setEditJob(job);
-                      }}
-                      style={{ marginRight: 8 }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setDeleteId(job._id)}
-                      style={{ background: "#e44b5a", color: "#fff" }}
-                    >
-                      Delete
-                    </button>
+                    <div className={styles.actions}>
+                      <button
+                        className={`${styles.actionBtn} ${styles.edit}`}
+                        onClick={() => setEditJob(job)}
+                        type="button"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className={`${styles.actionBtn} ${styles.delete}`}
+                        onClick={() => setDeleteId(job._id)}
+                        type="button"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -291,39 +293,24 @@ const Dashboard: React.FC = () => {
       </div>
       {/* Delete confirmation modal */}
       {deleteId && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            background: "rgba(0,0,0,0.25)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              padding: 32,
-              borderRadius: 12,
-              boxShadow: "0 2px 16px rgba(0,0,0,0.12)",
-              minWidth: 320,
-              textAlign: "center",
-            }}
-          >
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalBox}>
             <h3>Delete Job?</h3>
             <p>Are you sure you want to delete this job?</p>
-            <button
-              onClick={() => handleDelete(deleteId)}
-              style={{ background: "#e44b5a", color: "#fff", marginRight: 12 }}
-            >
-              Delete
-            </button>
-            <button onClick={() => setDeleteId(null)}>Cancel</button>
+            <div className={styles.modalActions}>
+              <button
+                className="modalDeleteBtn"
+                onClick={() => handleDelete(deleteId)}
+              >
+                Delete
+              </button>
+              <button
+                className="modalCancelBtn"
+                onClick={() => setDeleteId(null)}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

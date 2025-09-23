@@ -1,3 +1,113 @@
+/* Delete confirmation modal styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalBox {
+  background: #fff;
+  padding: 2.2rem 2.5rem 1.5rem 2.5rem;
+  border-radius: 14px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
+  min-width: 320px;
+  text-align: center;
+  max-width: 90vw;
+}
+.modalBox h3 {
+  margin-top: 0;
+  margin-bottom: 0.7em;
+  font-size: 1.25em;
+  color: #b91c1c;
+}
+.modalBox p {
+  margin-bottom: 1.5em;
+  color: #444;
+}
+.modalBox .modalActions {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin-top: 1.7em;
+}
+.modalBox .modalDeleteBtn {
+  background: #e44b5a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 600;
+  font-size: 1.05em;
+  cursor: pointer;
+  transition: background 0.18s;
+  box-shadow: 0 1px 4px rgba(228, 75, 90, 0.08);
+}
+.modalBox .modalDeleteBtn:hover {
+  background: #b91c1c;
+}
+.modalBox .modalCancelBtn {
+  background: #f3f4f6;
+  color: #333;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 500;
+  font-size: 1.05em;
+  cursor: pointer;
+  transition: background 0.18s;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+.modalBox .modalCancelBtn:hover {
+  background: #e5e7eb;
+}
+/* Table action buttons layout */
+.actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.actionBtn {
+  padding: 0.42rem 1.25rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1.05em;
+  cursor: pointer;
+  background: transparent;
+  color: #222;
+  transition: border-color 0.18s, color 0.18s, background 0.18s;
+  box-shadow: none;
+  letter-spacing: 0.01em;
+}
+.actionBtn.edit {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: #f0f6ff;
+}
+.actionBtn.edit:hover {
+  background: #2563eb22;
+  color: #1741a6;
+  border-color: #1741a6;
+}
+.actionBtn.delete {
+  border-color: #e44b5a;
+  color: #e44b5a;
+  background: #fff5f5;
+}
+.actionBtn.delete:hover {
+  background: #e44b5a22;
+  color: #b91c1c;
+  border-color: #b91c1c;
+}
 .tag {
   display: inline-block;
   background: #e0e7ff;
