@@ -18,6 +18,10 @@
   background: #fff;
   width: 100%;
   box-sizing: border-box;
+  color: #000 !important;
+}
+.filterBox input[type="text"]:focus {
+  color: #000 !important;
 }
 .filterBox select {
   padding: 0.5rem 0.9rem;
@@ -27,7 +31,12 @@
   background: #fff;
   width: 100%;
   box-sizing: border-box;
-  color: #1a2233;
+  color: #000;
+  /* Improve placeholder readability */
+}
+.filterBox input[type="text"]::placeholder {
+  color: #444;
+  opacity: 1;
 }
 .filterBox select option {
   color: #1a2233;

@@ -2,8 +2,22 @@ import React, { useState, useEffect, useMemo } from "react";
 import JobForm from "../components/JobForm";
 import type { JobFormData } from "../components/JobForm";
 import styles from "./Dashboard.module.css";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { useAuth } from "../context/AuthContext";
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  AreaChart,
+  Area,
+} from "recharts";
 
 type Job = {
   _id: string;
@@ -31,6 +45,43 @@ const Dashboard: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState("");
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Bar chart: applications by company
+  const companyBarData = React.useMemo<
+    { company: string; count: number }[]
+  >(() => {
+    const companyMap: Record<string, number> = {};
+    jobs.forEach((job) => {
+      if (!job.company) return;
+      companyMap[job.company] = (companyMap[job.company] || 0) + 1;
+    });
+    return Object.entries(companyMap)
+      .sort((a, b) => b[1] - a[1]) // sort descending by count
+      .map(([company, count]) => ({ company, count }));
+  }, [jobs]);
+
+  // Area chart: cumulative applications over time
+  const cumulativeData = React.useMemo<
+    { date: string; total: number }[]
+  >(() => {
+    const dateCounts: Record<string, number> = {};
+    jobs.forEach((job) => {
+      if (!job.date) return;
+      const d = new Date(job.date);
+      if (isNaN(d.getTime())) return;
+      const key = d.toISOString().slice(0, 10);
+      dateCounts[key] = (dateCounts[key] || 0) + 1;
+    });
+    let cumulative = 0;
+    const result: { date: string; total: number }[] = [];
+    Object.keys(dateCounts)
+      .sort()
+      .forEach((date) => {
+        cumulative += dateCounts[date];
+        result.push({ date, total: cumulative });
+      });
+    return result;
+  }, [jobs]);
 
   // Fetch jobs for the logged-in user
   useEffect(() => {
@@ -150,7 +201,10 @@ const Dashboard: React.FC = () => {
       if (!job.date) return;
       const d = new Date(job.date);
       if (isNaN(d.getTime())) return;
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
       monthMap[key] = (monthMap[key] || 0) + 1;
     });
     // Sort by month ascending
@@ -280,8 +334,27 @@ const Dashboard: React.FC = () => {
       <div className={styles.section}>
         <div className={styles.chartTitle}>Job Analytics</div>
         <div className={styles.chartsGrid}>
-          <div className={styles.charts} style={{ minWidth: 320, flex: 1, boxShadow: "0 2px 12px rgba(30,64,175,0.07)", borderRadius: 12, background: "#f4f7fb", padding: 16 }}>
-            <div style={{ fontWeight: 600, marginBottom: 8, color: "#2563eb", textAlign: "center" }}>Status Distribution</div>
+          <div
+            className={styles.charts}
+            style={{
+              minWidth: 320,
+              flex: 1,
+              boxShadow: "0 2px 12px rgba(30,64,175,0.07)",
+              borderRadius: 12,
+              background: "#f4f7fb",
+              padding: 16,
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 600,
+                marginBottom: 8,
+                color: "#2563eb",
+                textAlign: "center",
+              }}
+            >
+              Status Distribution
+            </div>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
@@ -308,17 +381,139 @@ const Dashboard: React.FC = () => {
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className={styles.charts} style={{ minWidth: 320, flex: 1, boxShadow: "0 2px 12px rgba(30,64,175,0.07)", borderRadius: 12, background: "#f4f7fb", padding: 16 }}>
-            <div style={{ fontWeight: 600, marginBottom: 8, color: "#2563eb", textAlign: "center" }}>Applications per Month</div>
+          <div
+            className={styles.charts}
+            style={{
+              minWidth: 320,
+              flex: 1,
+              boxShadow: "0 2px 12px rgba(30,64,175,0.07)",
+              borderRadius: 12,
+              background: "#f4f7fb",
+              padding: 16,
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 600,
+                marginBottom: 8,
+                color: "#2563eb",
+                textAlign: "center",
+              }}
+            >
+              Applications per Month
+            </div>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={barData} margin={{ top: 16, right: 16, left: 0, bottom: 16 }}>
+              <BarChart
+                data={barData}
+                margin={{ top: 16, right: 16, left: 0, bottom: 16 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="count" fill="#2563eb" name="Applications" radius={[6,6,0,0]} />
+                <Bar
+                  dataKey="count"
+                  fill="#2563eb"
+                  name="Applications"
+                  radius={[6, 6, 0, 0]}
+                />
               </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div
+            className={styles.charts}
+            style={{
+              minWidth: 320,
+              flex: 1,
+              boxShadow: "0 2px 12px rgba(30,64,175,0.07)",
+              borderRadius: 12,
+              background: "#f4f7fb",
+              padding: 16,
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 600,
+                marginBottom: 8,
+                color: "#2563eb",
+                textAlign: "center",
+              }}
+            >
+              Applications by Company
+            </div>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart
+                data={companyBarData}
+                margin={{ top: 16, right: 16, left: 0, bottom: 16 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="company"
+                  tick={{ fontSize: 12 }}
+                  interval={0}
+                  angle={-20}
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Legend />
+                <Bar
+                  dataKey="count"
+                  fill="#fbbf24"
+                  name="Applications"
+                  radius={[6, 6, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div
+            className={styles.charts}
+            style={{
+              minWidth: 320,
+              flex: 1,
+              boxShadow: "0 2px 12px rgba(30,64,175,0.07)",
+              borderRadius: 12,
+              background: "#f4f7fb",
+              padding: 16,
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 600,
+                marginBottom: 8,
+                color: "#2563eb",
+                textAlign: "center",
+              }}
+            >
+              Cumulative Applications
+            </div>
+            <ResponsiveContainer width="100%" height={250}>
+              <AreaChart
+                data={cumulativeData}
+                margin={{ top: 16, right: 16, left: 0, bottom: 16 }}
+              >
+                <defs>
+                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#34d399" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#34d399" stopOpacity={0.1} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Legend />
+                <Area
+                  type="monotone"
+                  dataKey="total"
+                  stroke="#34d399"
+                  fillOpacity={1}
+                  fill="url(#colorTotal)"
+                  name="Cumulative"
+                />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
