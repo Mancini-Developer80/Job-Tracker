@@ -13,12 +13,14 @@ type JobFormProps = {
   initialData?: JobFormData;
   onSubmit: (data: JobFormData) => void;
   submitLabel?: string;
+  onCancel?: () => void;
 };
 
 const JobForm: React.FC<JobFormProps> = ({
   initialData,
   onSubmit,
   submitLabel = "Add Job",
+  onCancel,
 }) => {
   const [form, setForm] = useState<JobFormData>(
     initialData || {
@@ -86,9 +88,21 @@ const JobForm: React.FC<JobFormProps> = ({
         value={form.tags}
         onChange={handleChange}
       />
-      <button className={styles.button} type="submit">
-        {submitLabel}
-      </button>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button className={styles.button} type="submit">
+          {submitLabel}
+        </button>
+        {onCancel && (
+          <button
+            type="button"
+            className={styles.button}
+            style={{ background: '#eee', color: '#333' }}
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   );
 };

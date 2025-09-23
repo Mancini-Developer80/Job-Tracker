@@ -171,6 +171,10 @@ const Dashboard: React.FC = () => {
                 : undefined
             }
             submitLabel={editJob ? "Update Job" : "Add Job"}
+            onCancel={() => {
+              setShowForm(false);
+              setEditJob(null);
+            }}
           />
         )}
       </div>
