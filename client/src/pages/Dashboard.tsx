@@ -164,13 +164,12 @@ const Dashboard: React.FC = () => {
         />
       </div>
       <div className={styles.section}>
-        <div className={styles.filters}>
+        <div className={styles.filterBox}>
           <input
             type="text"
             placeholder="Search company or position"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ minWidth: 180 }}
           />
           <select
             value={filterStatus}
