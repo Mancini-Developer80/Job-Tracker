@@ -14,6 +14,7 @@ type JobFormProps = {
   onSubmit: (data: JobFormData) => void;
   submitLabel?: string;
   onCancel?: () => void;
+  showCancel?: boolean;
 };
 
 const JobForm: React.FC<JobFormProps> = ({
@@ -21,6 +22,7 @@ const JobForm: React.FC<JobFormProps> = ({
   onSubmit,
   submitLabel = "Add Job",
   onCancel,
+  showCancel = false,
 }) => {
   const [form, setForm] = useState<JobFormData>(
     initialData || {
@@ -67,11 +69,15 @@ const JobForm: React.FC<JobFormProps> = ({
         value={form.status}
         onChange={handleChange}
         required
+        style={{ color: form.status ? "#222" : "#888", background: "#fff" }}
       >
-        <option value="Applied">Applied</option>
-        <option value="Interview">Interview</option>
-        <option value="Offer">Offer</option>
-        <option value="Rejected">Rejected</option>
+        <option value="" disabled hidden>
+          Select job status
+        </option>
+        <option value="Applied">📝 Applied</option>
+        <option value="Interview">💬 Interview</option>
+        <option value="Offer">💼 Offer</option>
+        <option value="Rejected">🚫 Rejected</option>
       </select>
       <input
         className={styles.input}
@@ -88,15 +94,15 @@ const JobForm: React.FC<JobFormProps> = ({
         value={form.tags}
         onChange={handleChange}
       />
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: "flex", gap: 8 }}>
         <button className={styles.button} type="submit">
           {submitLabel}
         </button>
-        {onCancel && (
+        {showCancel && onCancel && (
           <button
             type="button"
             className={styles.button}
-            style={{ background: '#eee', color: '#333' }}
+            style={{ background: "#eee", color: "#333" }}
             onClick={onCancel}
           >
             Cancel

@@ -26,7 +26,6 @@ const Dashboard: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showForm, setShowForm] = useState(false);
   const [editJob, setEditJob] = useState<Job | null>(null);
   const [filterStatus, setFilterStatus] = useState("");
   const [search, setSearch] = useState("");
@@ -86,7 +85,6 @@ const Dashboard: React.FC = () => {
       } else {
         setJobs((prev) => [data, ...prev]);
       }
-      setShowForm(false);
       setEditJob(null);
     } catch (err) {
       setError("Could not save job");
@@ -150,33 +148,20 @@ const Dashboard: React.FC = () => {
         <div style={{ color: "#d32f2f", marginBottom: 12 }}>{error}</div>
       )}
       <div className={styles.section}>
-        <button
-          onClick={() => {
-            setShowForm(true);
-            setEditJob(null);
-          }}
-          style={{ marginBottom: 16 }}
-        >
-          Add Job
-        </button>
-        {showForm && (
-          <JobForm
-            onSubmit={handleSubmit}
-            initialData={
-              editJob
-                ? {
-                    ...editJob,
-                    tags: editJob.tags.join(", "),
-                  }
-                : undefined
-            }
-            submitLabel={editJob ? "Update Job" : "Add Job"}
-            onCancel={() => {
-              setShowForm(false);
-              setEditJob(null);
-            }}
-          />
-        )}
+        <JobForm
+          onSubmit={handleSubmit}
+          initialData={
+            editJob
+              ? {
+                  ...editJob,
+                  tags: editJob.tags.join(", "),
+                }
+              : undefined
+          }
+          submitLabel={editJob ? "Update Job" : "Add Job"}
+          onCancel={editJob ? () => setEditJob(null) : undefined}
+          showCancel={!!editJob}
+        />
       </div>
       <div className={styles.section}>
         <div className={styles.filters}>
@@ -247,7 +232,6 @@ const Dashboard: React.FC = () => {
                     <button
                       onClick={() => {
                         setEditJob(job);
-                        setShowForm(true);
                       }}
                       style={{ marginRight: 8 }}
                     >
