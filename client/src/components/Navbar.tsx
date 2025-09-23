@@ -41,10 +41,32 @@ const Navbar = () => {
           <div className={styles.navRight}>
             {/* Show user name when logged in */}
             {user && user.name && (
-              <span
-                className={styles.link}
-                style={{ fontWeight: 500, color: "#007bff" }}
-              >
+              <span className={styles.userName}>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  style={{ marginRight: 6 }}
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="10"
+                    cy="6.5"
+                    r="3.5"
+                    fill="#2563eb"
+                    fillOpacity="0.18"
+                  />
+                  <circle cx="10" cy="6.5" r="2.5" fill="#2563eb" />
+                  <ellipse
+                    cx="10"
+                    cy="15.5"
+                    rx="6"
+                    ry="3.5"
+                    fill="#2563eb"
+                    fillOpacity="0.12"
+                  />
+                </svg>
                 {user.name}
               </span>
             )}

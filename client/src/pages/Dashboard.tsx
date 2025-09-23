@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import JobForm from "../components/JobForm";
 import type { JobFormData } from "../components/JobForm";
 import styles from "./Dashboard.module.css";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { useAuth } from "../context/AuthContext";
 
 type Job = {
@@ -27,6 +27,7 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editJob, setEditJob] = useState<Job | null>(null);
+  const [formKey, setFormKey] = useState(0);
   const [filterStatus, setFilterStatus] = useState("");
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -84,6 +85,7 @@ const Dashboard: React.FC = () => {
         setJobs((prev) => prev.map((j) => (j._id === data._id ? data : j)));
       } else {
         setJobs((prev) => [data, ...prev]);
+        setFormKey((k) => k + 1); // force JobForm to reset
       }
       setEditJob(null);
     } catch (err) {
@@ -141,6 +143,22 @@ const Dashboard: React.FC = () => {
     }));
   }, [jobs]);
 
+  // Bar chart data: jobs per month
+  const barData = useMemo(() => {
+    const monthMap: Record<string, number> = {};
+    jobs.forEach((job) => {
+      if (!job.date) return;
+      const d = new Date(job.date);
+      if (isNaN(d.getTime())) return;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      monthMap[key] = (monthMap[key] || 0) + 1;
+    });
+    // Sort by month ascending
+    return Object.entries(monthMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, count]) => ({ month, count }));
+  }, [jobs]);
+
   return (
     <div className={styles.dashboard}>
       <h2>Dashboard</h2>
@@ -149,6 +167,7 @@ const Dashboard: React.FC = () => {
       )}
       <div className={styles.section}>
         <JobForm
+          key={formKey}
           onSubmit={handleSubmit}
           initialData={
             editJob
@@ -259,9 +278,10 @@ const Dashboard: React.FC = () => {
         )}
       </div>
       <div className={styles.section}>
-        <div className={styles.chartTitle}>Job Status Distribution</div>
+        <div className={styles.chartTitle}>Job Analytics</div>
         <div className={styles.chartsGrid}>
-          <div className={styles.charts}>
+          <div className={styles.charts} style={{ minWidth: 320, flex: 1, boxShadow: "0 2px 12px rgba(30,64,175,0.07)", borderRadius: 12, background: "#f4f7fb", padding: 16 }}>
+            <div style={{ fontWeight: 600, marginBottom: 8, color: "#2563eb", textAlign: "center" }}>Status Distribution</div>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
@@ -286,6 +306,19 @@ const Dashboard: React.FC = () => {
                 </Pie>
                 <Tooltip />
               </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className={styles.charts} style={{ minWidth: 320, flex: 1, boxShadow: "0 2px 12px rgba(30,64,175,0.07)", borderRadius: 12, background: "#f4f7fb", padding: 16 }}>
+            <div style={{ fontWeight: 600, marginBottom: 8, color: "#2563eb", textAlign: "center" }}>Applications per Month</div>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={barData} margin={{ top: 16, right: 16, left: 0, bottom: 16 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#2563eb" name="Applications" radius={[6,6,0,0]} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
