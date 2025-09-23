@@ -1,21 +1,12 @@
-import { useState, useMemo } from "react";
-import JobForm, { type JobFormData } from "../components/JobForm";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts";
+import React, { useState, useEffect, useMemo } from "react";
+import JobForm from "../components/JobForm";
+import type { JobFormData } from "../components/JobForm";
 import styles from "./Dashboard.module.css";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { useAuth } from "../context/AuthContext";
 
 type Job = {
-  id: number;
+  _id: string;
   company: string;
   position: string;
   status: "Applied" | "Interview" | "Offer" | "Rejected";
@@ -23,243 +14,331 @@ type Job = {
   tags: string[];
 };
 
-const mockJobs: Job[] = [
-  {
-    id: 1,
-    company: "Acme Corp",
-    position: "Frontend Developer",
-    status: "Applied",
-    date: "2025-09-19",
-    tags: ["react", "remote"],
-  },
-  {
-    id: 2,
-    company: "Beta Inc",
-    position: "Backend Developer",
-    status: "Interview",
-    date: "2025-09-15",
-    tags: ["node", "onsite"],
-  },
-  {
-    id: 3,
-    company: "Gamma LLC",
-    position: "Fullstack Engineer",
-    status: "Offer",
-    date: "2025-09-10",
-    tags: ["typescript", "remote"],
-  },
-  {
-    id: 4,
-    company: "Acme Corp",
-    position: "QA Tester",
-    status: "Rejected",
-    date: "2025-09-05",
-    tags: ["qa"],
-  },
-];
+const STATUS_COLORS: Record<Job["status"], string> = {
+  Applied: "#60a5fa",
+  Interview: "#fbbf24",
+  Offer: "#34d399",
+  Rejected: "#f87171",
+};
 
 const Dashboard: React.FC = () => {
-  const [jobs, setJobs] = useState<Job[]>(mockJobs);
-  const [companyFilter, setCompanyFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [tagsFilter, setTagsFilter] = useState("");
+  const { user } = useAuth();
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [editJob, setEditJob] = useState<Job | null>(null);
+  const [filterStatus, setFilterStatus] = useState("");
+  const [search, setSearch] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const filteredJobs = useMemo(() => {
-    return jobs.filter((job) => {
-      const companyMatch =
-        companyFilter === "" ||
-        job.company.toLowerCase().includes(companyFilter.toLowerCase());
-      const statusMatch = statusFilter === "" || job.status === statusFilter;
-      const tagsMatch =
-        tagsFilter === "" ||
-        job.tags.some((tag) =>
-          tag.toLowerCase().includes(tagsFilter.toLowerCase())
-        );
-      return companyMatch && statusMatch && tagsMatch;
-    });
-  }, [jobs, companyFilter, statusFilter, tagsFilter]);
+  // Fetch jobs for the logged-in user
+  useEffect(() => {
+    const fetchJobs = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/jobs`, {
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+          },
+        });
+        if (!res.ok) throw new Error("Failed to fetch jobs");
+        const data = await res.json();
+        setJobs(data);
+      } catch (err) {
+        setError("Could not load jobs");
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user) fetchJobs();
+  }, [user]);
 
-  // Chart data: count jobs per week (mocked for now)
-  const chartData = [
-    { week: "2025-09-01", applications: 2 },
-    { week: "2025-09-08", applications: 1 },
-    { week: "2025-09-15", applications: 1 },
-  ];
-
-  // Pie chart data: success rate
-  const offerCount = jobs.filter((j) => j.status === "Offer").length;
-  const rejectedCount = jobs.filter((j) => j.status === "Rejected").length;
-  const otherCount = jobs.length - offerCount - rejectedCount;
-  const pieData = [
-    { name: "Offers", value: offerCount },
-    { name: "Rejected", value: rejectedCount },
-    { name: "Other", value: otherCount },
-  ];
-  const pieColors = ["#28a745", "#dc3545", "#007bff"];
-
-  const handleAddJob = (data: JobFormData) => {
-    setJobs([
-      ...jobs,
-      {
-        id: jobs.length + 1,
-        company: data.company,
-        position: data.position,
-        status: data.status,
-        date: data.date,
-        tags: data.tags
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean),
-      },
-    ]);
+  // Add or update job
+  const handleSubmit = async (form: JobFormData) => {
+    setError("");
+    try {
+      const method = editJob ? "PUT" : "POST";
+      const url = editJob
+        ? `${import.meta.env.VITE_API_URL}/api/jobs/${editJob._id}`
+        : `${import.meta.env.VITE_API_URL}/api/jobs`;
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify({
+          ...form,
+          tags: form.tags
+            ? form.tags
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean)
+            : [],
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save job");
+      const data = await res.json();
+      if (editJob) {
+        setJobs((prev) => prev.map((j) => (j._id === data._id ? data : j)));
+      } else {
+        setJobs((prev) => [data, ...prev]);
+      }
+      setShowForm(false);
+      setEditJob(null);
+    } catch (err) {
+      setError("Could not save job");
+    }
   };
 
-  return (
-    <div className={styles.container}>
-      <h2>Dashboard</h2>
-      {/* Add Job Form */}
-      <JobForm onSubmit={handleAddJob} submitLabel="Add Job" />
+  // Delete job
+  const handleDelete = async (id: string) => {
+    setError("");
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/jobs/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+          },
+        }
+      );
+      if (!res.ok) throw new Error("Failed to delete job");
+      setJobs((prev) => prev.filter((j) => j._id !== id));
+      setDeleteId(null);
+    } catch (err) {
+      setError("Could not delete job");
+    }
+  };
 
-      {/* Filters Section */}
-      <section className={styles.section}>
-        <h3>Filters</h3>
+  // Filtered jobs
+  const filteredJobs = useMemo(() => {
+    return jobs.filter((job) => {
+      const matchesStatus = !filterStatus || job.status === filterStatus;
+      const matchesSearch =
+        !search ||
+        job.company.toLowerCase().includes(search.toLowerCase()) ||
+        job.position.toLowerCase().includes(search.toLowerCase());
+      return matchesStatus && matchesSearch;
+    });
+  }, [jobs, filterStatus, search]);
+
+  // Pie chart data
+  const chartData = useMemo(() => {
+    const counts: Record<Job["status"], number> = {
+      Applied: 0,
+      Interview: 0,
+      Offer: 0,
+      Rejected: 0,
+    };
+    jobs.forEach((job) => {
+      counts[job.status]++;
+    });
+    return Object.entries(counts).map(([status, value]) => ({
+      name: status,
+      value,
+    }));
+  }, [jobs]);
+
+  return (
+    <div className={styles.dashboard}>
+      <h2>Dashboard</h2>
+      {error && (
+        <div style={{ color: "#d32f2f", marginBottom: 12 }}>{error}</div>
+      )}
+      <div className={styles.section}>
+        <button
+          onClick={() => {
+            setShowForm(true);
+            setEditJob(null);
+          }}
+          style={{ marginBottom: 16 }}
+        >
+          Add Job
+        </button>
+        {showForm && (
+          <JobForm
+            onSubmit={handleSubmit}
+            initialData={
+              editJob
+                ? {
+                    ...editJob,
+                    tags: editJob.tags.join(", "),
+                  }
+                : undefined
+            }
+            submitLabel={editJob ? "Update Job" : "Add Job"}
+          />
+        )}
+      </div>
+      <div className={styles.section}>
         <div className={styles.filters}>
           <input
             type="text"
-            placeholder="Company"
-            value={companyFilter}
-            onChange={(e) => setCompanyFilter(e.target.value)}
+            placeholder="Search company or position"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ minWidth: 180 }}
           />
           <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
           >
-            <option value="">Status</option>
+            <option value="">All Statuses</option>
             <option value="Applied">Applied</option>
             <option value="Interview">Interview</option>
             <option value="Offer">Offer</option>
             <option value="Rejected">Rejected</option>
           </select>
-          <input
-            type="text"
-            placeholder="Tags"
-            value={tagsFilter}
-            onChange={(e) => setTagsFilter(e.target.value)}
-          />
         </div>
-      </section>
-
-      {/* Job List Section */}
-      <section className={styles.section}>
-        <h3>Job Applications</h3>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th className={styles.th}>Company</th>
-              <th className={styles.th}>Position</th>
-              <th className={styles.th}>Status</th>
-              <th className={styles.th}>Date</th>
-              <th className={styles.th}>Tags</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredJobs.length === 0 ? (
+        {loading ? (
+          <div>Loading jobs...</div>
+        ) : (
+          <table className={styles.table}>
+            <thead>
               <tr>
-                <td
-                  className={styles.td}
-                  colSpan={5}
-                  style={{ textAlign: "center" }}
-                >
-                  No jobs found.
-                </td>
+                <th className={styles.th}>Company</th>
+                <th className={styles.th}>Position</th>
+                <th className={styles.th}>Status</th>
+                <th className={styles.th}>Date</th>
+                <th className={styles.th}>Tags</th>
+                <th className={styles.th}>Actions</th>
               </tr>
-            ) : (
-              filteredJobs.map((job) => (
-                <tr key={job.id}>
+            </thead>
+            <tbody>
+              {filteredJobs.map((job) => (
+                <tr key={job._id}>
                   <td className={styles.td}>{job.company}</td>
                   <td className={styles.td}>{job.position}</td>
-                  <td className={styles.td}>{job.status}</td>
-                  <td className={styles.td}>{job.date}</td>
-                  <td className={styles.td}>{job.tags.join(", ")}</td>
+                  <td className={styles.td}>
+                    <span
+                      style={{
+                        background: STATUS_COLORS[job.status],
+                        color: "#fff",
+                        borderRadius: 8,
+                        padding: "2px 10px",
+                        fontWeight: 600,
+                        fontSize: "0.98em",
+                      }}
+                    >
+                      {job.status}
+                    </span>
+                  </td>
+                  <td className={styles.td}>{job.date?.slice(0, 10)}</td>
+                  <td className={styles.td}>
+                    {job.tags && job.tags.length > 0 ? (
+                      job.tags.map((tag, i) => (
+                        <span key={i} className={styles.tag}>
+                          {tag}
+                        </span>
+                      ))
+                    ) : (
+                      <span style={{ color: "#888" }}>—</span>
+                    )}
+                  </td>
+                  <td className={styles.td}>
+                    <button
+                      onClick={() => {
+                        setEditJob(job);
+                        setShowForm(true);
+                      }}
+                      style={{ marginRight: 8 }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setDeleteId(job._id)}
+                      style={{ background: "#e44b5a", color: "#fff" }}
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </section>
-
-      {/* Charts Section */}
-      <section className={styles.section}>
-        <h3>Statistics</h3>
+              ))}
+              {filteredJobs.length === 0 && (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: "center" }}>
+                    No jobs found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <div className={styles.section}>
+        <div className={styles.chartTitle}>Job Status Distribution</div>
         <div className={styles.chartsGrid}>
-          <div style={{ flex: 1, minWidth: 250 }}>
-            <h4 className={styles.chartTitle}>Applications per Week</h4>
-            <div className={styles.charts}>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart
+          <div className={styles.charts}>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
                   data={chartData}
-                  margin={{ top: 20, right: 30, left: 10, bottom: 30 }}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label={({ name, value }) =>
+                    typeof value === "number" && value > 0
+                      ? `${name}: ${value}`
+                      : ""
+                  }
                 >
-                  <XAxis
-                    dataKey="week"
-                    label={{
-                      value: "Week",
-                      position: "insideBottom",
-                      offset: -10,
-                    }}
-                  />
-                  <YAxis
-                    allowDecimals={false}
-                    label={{
-                      value: "Applications",
-                      angle: -90,
-                      position: "insideLeft",
-                      offset: 10,
-                    }}
-                  />
-                  <Tooltip />
-                  <Legend verticalAlign="top" height={36} />
-                  <Bar
-                    dataKey="applications"
-                    fill="#007bff"
-                    name="Applications"
-                    label={{ position: "top", fill: "#333", fontSize: 12 }}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          <div style={{ flex: 1, minWidth: 250 }}>
-            <h4 className={styles.chartTitle}>Success Rate</h4>
-            <div className={styles.charts}>
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={70}
-                    label={({ name, percent }) =>
-                      `${name}: ${((percent as number) * 100).toFixed(0)}%`
-                    }
-                  >
-                    {pieData.map((_entry, idx) => (
-                      <Cell
-                        key={`cell-${idx}`}
-                        fill={pieColors[idx % pieColors.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value, name) => [`${value}`, name]} />
-                  <Legend verticalAlign="bottom" height={36} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+                  {chartData.map((entry) => (
+                    <Cell
+                      key={entry.name}
+                      fill={STATUS_COLORS[entry.name as Job["status"]]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
-      </section>
+      </div>
+      {/* Delete confirmation modal */}
+      {deleteId && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0,0,0,0.25)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: 32,
+              borderRadius: 12,
+              boxShadow: "0 2px 16px rgba(0,0,0,0.12)",
+              minWidth: 320,
+              textAlign: "center",
+            }}
+          >
+            <h3>Delete Job?</h3>
+            <p>Are you sure you want to delete this job?</p>
+            <button
+              onClick={() => handleDelete(deleteId)}
+              style={{ background: "#e44b5a", color: "#fff", marginRight: 12 }}
+            >
+              Delete
+            </button>
+            <button onClick={() => setDeleteId(null)}>Cancel</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

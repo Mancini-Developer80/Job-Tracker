@@ -50,14 +50,17 @@ export const createJob = async (
     return res.status(400).json({ errors: errors.array() });
   }
   try {
-    const { company, position, status, date } = req.body;
+    console.log("Job creation req.body:", req.body);
+    const { company, position, status, date, tags } = req.body;
     const job = await Job.create({
       user: req.user?.id,
       company,
       position,
       status,
       date,
+      tags: Array.isArray(tags) ? tags : [],
     });
+    console.log("Job created:", job);
     res.status(201).json(job);
   } catch (err) {
     next(err);

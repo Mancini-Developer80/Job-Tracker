@@ -1,3 +1,20 @@
+.logoutButton {
+  background: linear-gradient(90deg, #ff5858 0%, #f09819 100%);
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  padding: 6px 20px;
+  font-weight: 600;
+  font-size: 1em;
+  margin-left: 18px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255, 88, 88, 0.08);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.logoutButton:hover {
+  background: linear-gradient(90deg, #f09819 0%, #ff5858 100%);
+  box-shadow: 0 4px 16px rgba(255, 88, 88, 0.16);
+}
 .navbar {
   background: #f8f9fa;
 }
@@ -21,5 +38,19 @@
   border-bottom: 1px solid #ccc;
   background: #f8f9fa;
   display: flex;
+  align-items: center;
   gap: 1rem;
+  justify-content: space-between;
+}
+
+.navLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }

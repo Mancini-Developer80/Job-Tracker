@@ -23,7 +23,14 @@ export const register = async (
     }
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ name, email, password: hashed });
+    // Generate JWT token (same as login)
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET || "secret",
+      { expiresIn: "7d" }
+    );
     res.status(201).json({
+      token,
       id: user._id,
       name: user.name,
       email: user.email,
@@ -52,12 +59,10 @@ export const login = async (
     );
     res.json({
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
     });
   } catch (err) {
     next(err);

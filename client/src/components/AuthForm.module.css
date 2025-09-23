@@ -29,6 +29,8 @@
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 4px;
+  box-sizing: border-box;
+  margin: 0;
 }
 
 .button {
@@ -41,6 +43,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  box-sizing: border-box;
+  margin: 0;
 }
 
 .button:hover {
