@@ -305,9 +305,13 @@ const Dashboard: React.FC = () => {
               </button>
               <button
                 className="modalCancelBtn"
-                onClick={() => setDeleteId(null)}
+                onClick={() => {
+                  setDeleteId(null);
+                  setSearch("");
+                  setFilterStatus("");
+                }}
               >
-                Cancel
+                Cancel & Clear Filters
               </button>
             </div>
           </div>

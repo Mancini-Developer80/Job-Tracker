@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./JobForm.module.css";
 
 export type JobFormData = {
@@ -24,15 +24,41 @@ const JobForm: React.FC<JobFormProps> = ({
   onCancel,
   showCancel = false,
 }) => {
+  // Format date as YYYY-MM-DD if initialData is present and date is not already in that format
+  function formatDate(date: string) {
+    if (!date) return "";
+    // If already in YYYY-MM-DD, return as is
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+    // Try to parse and format
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return "";
+    return d.toISOString().slice(0, 10);
+  }
+
   const [form, setForm] = useState<JobFormData>(
-    initialData || {
-      company: "",
-      position: "",
-      status: "Applied",
-      date: "",
-      tags: "",
-    }
+    initialData
+      ? {
+          ...initialData,
+          date: formatDate(initialData.date),
+        }
+      : {
+          company: "",
+          position: "",
+          status: "Applied",
+          date: "",
+          tags: "",
+        }
   );
+
+  // Update form state when initialData changes (for edit mode)
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        ...initialData,
+        date: formatDate(initialData.date),
+      });
+    }
+  }, [initialData]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -43,6 +69,17 @@ const JobForm: React.FC<JobFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(form);
+  };
+
+  // Helper to clear form fields
+  const clearForm = () => {
+    setForm({
+      company: "",
+      position: "",
+      status: "Applied",
+      date: "",
+      tags: "",
+    });
   };
 
   return (
@@ -138,7 +175,10 @@ const JobForm: React.FC<JobFormProps> = ({
               type="button"
               className={styles.button}
               style={{ background: "#eee", color: "#333" }}
-              onClick={onCancel}
+              onClick={() => {
+                clearForm();
+                onCancel();
+              }}
             >
               Cancel
             </button>
