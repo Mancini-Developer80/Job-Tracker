@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import Papa from "papaparse";
 import NoteModal from "../components/NoteModal";
 import JobForm from "../components/JobForm";
 import type { JobFormData } from "../components/JobForm";
@@ -19,6 +20,7 @@ import {
   AreaChart,
   Area,
 } from "recharts";
+import * as XLSX from "xlsx";
 
 type Job = {
   _id: string;
@@ -39,6 +41,80 @@ const STATUS_COLORS: Record<Job["status"], string> = {
 };
 
 const Dashboard: React.FC = () => {
+  // CSV Export
+  const handleExportCSV = () => {
+    if (!jobs.length) return;
+    const csv = Papa.unparse(
+      jobs.map(({ _id, ...job }) => ({
+        ...job,
+        tags: Array.isArray(job.tags) ? job.tags.join(", ") : job.tags,
+      }))
+    );
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute(
+      "download",
+      `jobs_export_${new Date().toISOString().slice(0, 10)}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Excel Export
+  const handleExportExcel = () => {
+    if (!jobs.length) return;
+    const data = jobs.map(({ _id, ...job }) => ({
+      ...job,
+      tags: Array.isArray(job.tags) ? job.tags.join(", ") : job.tags,
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Jobs");
+    XLSX.writeFile(
+      workbook,
+      `jobs_export_${new Date().toISOString().slice(0, 10)}.xlsx`
+    );
+  };
+
+  // CSV Import
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const importedJobs = (results.data as any[]).map((row, idx) => ({
+          _id:
+            row._id && typeof row._id === "string" && row._id.trim() !== ""
+              ? row._id
+              : `imported-${Date.now()}-${idx}`,
+          company: row.company || "",
+          position: row.position || "",
+          status: row.status || "Applied",
+          date: row.date || new Date().toISOString().slice(0, 10),
+          tags: row.tags
+            ? row.tags
+                .split(/,|;/)
+                .map((t: string) => t.trim())
+                .filter(Boolean)
+            : [],
+          notes: row.notes || "",
+          favorite: row.favorite === "true" || row.favorite === true,
+        }));
+        // Optionally, send to backend here. For now, just add to state:
+        setJobs((prev) => [...importedJobs, ...prev]);
+      },
+      error: (err) => {
+        alert("Failed to import CSV: " + err.message);
+      },
+    });
+    // Reset file input
+    e.target.value = "";
+  };
   const { user } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -231,6 +307,99 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className={styles.dashboard}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: 8,
+          marginBottom: 24,
+          background: "#f4f7fb",
+          borderRadius: 10,
+          padding: "18px 20px 14px 20px",
+          boxShadow: "0 2px 8px rgba(30,64,175,0.06)",
+        }}
+      >
+        <div
+          style={{
+            fontWeight: 600,
+            color: "#2563eb",
+            marginBottom: 4,
+            fontSize: 17,
+          }}
+        >
+          Import/Export Your Jobs
+        </div>
+        <div
+          style={{
+            color: "#333",
+            fontSize: 14,
+            marginBottom: 8,
+            maxWidth: 600,
+          }}
+        >
+          <ul style={{ margin: 0, paddingLeft: 18 }}>
+            <li>
+              Export your job list as a <b>CSV</b> or <b>Excel (.xlsx)</b> file
+              for backup, sharing, or use in Excel/Sheets.
+            </li>
+            <li>
+              <b>Export CSV</b>: Universal, simple text format. Best for quick
+              data transfer or import into most tools.
+            </li>
+            <li>
+              <b>Export Excel</b>: Preserves formatting, works best for advanced
+              spreadsheet use, and is compatible with Microsoft Excel and Google
+              Sheets.
+            </li>
+            <li>
+              Import jobs from a CSV file (e.g., from LinkedIn or another
+              tracker). Imported jobs are added to your dashboard but not saved
+              to the backend.
+            </li>
+            <li>
+              CSV columns:{" "}
+              <b>company, position, status, date, tags, notes, favorite</b>.
+              Tags can be comma- or semicolon-separated.
+            </li>
+          </ul>
+        </div>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <button
+            onClick={handleExportCSV}
+            className={styles.button}
+            style={{ background: "#2563eb", color: "#fff", minWidth: 120 }}
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={handleExportExcel}
+            className={styles.button}
+            style={{ background: "#22c55e", color: "#fff", minWidth: 120 }}
+          >
+            Export Excel
+          </button>
+          <label
+            className={styles.button}
+            style={{
+              background: "#fbbf24",
+              color: "#222",
+              cursor: "pointer",
+              marginBottom: 0,
+              minWidth: 120,
+              textAlign: "center",
+            }}
+          >
+            Import CSV
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleImportCSV}
+              style={{ display: "none" }}
+            />
+          </label>
+        </div>
+      </div>
       <h2>Dashboard</h2>
       {error && (
         <div style={{ color: "#d32f2f", marginBottom: 12 }}>{error}</div>
