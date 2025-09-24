@@ -7,6 +7,7 @@ export type JobFormData = {
   status: "Applied" | "Interview" | "Offer" | "Rejected";
   date: string;
   tags: string;
+  notes?: string;
 };
 
 type JobFormProps = {
@@ -40,6 +41,7 @@ const JobForm: React.FC<JobFormProps> = ({
       ? {
           ...initialData,
           date: formatDate(initialData.date),
+          notes: initialData.notes || "",
         }
       : {
           company: "",
@@ -47,6 +49,7 @@ const JobForm: React.FC<JobFormProps> = ({
           status: "Applied",
           date: "",
           tags: "",
+          notes: "",
         }
   );
 
@@ -56,12 +59,15 @@ const JobForm: React.FC<JobFormProps> = ({
       setForm({
         ...initialData,
         date: formatDate(initialData.date),
+        notes: initialData.notes || "",
       });
     }
   }, [initialData]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -79,6 +85,7 @@ const JobForm: React.FC<JobFormProps> = ({
       status: "Applied",
       date: "",
       tags: "",
+      notes: "",
     });
   };
 
@@ -166,9 +173,31 @@ const JobForm: React.FC<JobFormProps> = ({
           value={form.tags}
           onChange={handleChange}
         />
+        <textarea
+          className={styles.input}
+          name="notes"
+          placeholder="Notes or comments (optional)"
+          value={form.notes}
+          onChange={handleChange}
+          rows={2}
+          style={{ gridColumn: "1 / span 2", resize: "vertical" }}
+        />
         <div style={{ display: "flex", gap: 8 }}>
           <button className={styles.button} type="submit">
             {submitLabel}
+          </button>
+          <button
+            type="button"
+            className={styles.button}
+            style={{
+              background: "#f3f4f6",
+              color: "#2563eb",
+              border: "1px solid #2563eb",
+            }}
+            onClick={clearForm}
+            title="Clear all fields"
+          >
+            Clear
           </button>
           {showCancel && onCancel && (
             <button

@@ -8,6 +8,7 @@ export interface IJob extends Document {
   date: Date;
   tags: string[];
   favorite?: boolean;
+  notes?: string;
 }
 
 const jobSchema = new Schema<IJob>({
@@ -22,6 +23,7 @@ const jobSchema = new Schema<IJob>({
   date: { type: Date, default: Date.now },
   tags: { type: [String], default: [] },
   favorite: { type: Boolean, default: false },
+  notes: { type: String, default: "" },
 });
 
 export default model<IJob>("Job", jobSchema);

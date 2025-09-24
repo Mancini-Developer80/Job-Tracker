@@ -1,0 +1,68 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(30, 41, 59, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 32px rgba(30, 41, 59, 0.18);
+  min-width: 320px;
+  max-width: 90vw;
+  min-height: 120px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2563eb;
+  color: #fff;
+  padding: 14px 20px 12px 20px;
+  font-size: 1.1em;
+  font-weight: 700;
+}
+.title {
+  flex: 1;
+}
+.closeBtn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5em;
+  cursor: pointer;
+  font-weight: 700;
+  margin-left: 12px;
+}
+.content {
+  padding: 20px 24px 18px 24px;
+  font-size: 1.08em;
+  color: #1e293b;
+  overflow-y: auto;
+  white-space: pre-line;
+}
+.note {
+  font-family: inherit;
+  font-size: 1em;
+  background: #f3f6fd;
+  border-radius: 6px;
+  padding: 12px 10px;
+  margin: 0;
+  color: #222;
+  white-space: pre-line;
+}
+.empty {
+  color: #888;
+  font-style: italic;
+}

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import NoteModal from "../components/NoteModal";
 import JobForm from "../components/JobForm";
 import type { JobFormData } from "../components/JobForm";
 import styles from "./Dashboard.module.css";
@@ -27,6 +28,7 @@ type Job = {
   date: string;
   tags: string[];
   favorite?: boolean;
+  notes?: string;
 };
 
 const STATUS_COLORS: Record<Job["status"], string> = {
@@ -47,6 +49,12 @@ const Dashboard: React.FC = () => {
   const [search, setSearch] = useState("");
   const [showFavorites, setShowFavorites] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [noteModal, setNoteModal] = useState<{ open: boolean; note: string }>({
+    open: false,
+    note: "",
+  });
+  // Ref to track the latest job id for which the modal is opened
+  const noteModalJobId = useRef<string | null>(null);
 
   // Bar chart: applications by company
   const companyBarData = React.useMemo<
@@ -130,12 +138,17 @@ const Dashboard: React.FC = () => {
                 .map((t) => t.trim())
                 .filter(Boolean)
             : [],
+          notes: typeof form.notes === "string" ? form.notes : "",
         }),
       });
       if (!res.ok) throw new Error("Failed to save job");
       const data = await res.json();
       if (editJob) {
         setJobs((prev) => prev.map((j) => (j._id === data._id ? data : j)));
+        // If the note modal is open for this job, update the modal content
+        if (noteModal.open && noteModalJobId.current === data._id) {
+          setNoteModal({ open: true, note: data.notes || "" });
+        }
       } else {
         setJobs((prev) => [data, ...prev]);
         setFormKey((k) => k + 1); // force JobForm to reset
@@ -231,6 +244,7 @@ const Dashboard: React.FC = () => {
               ? {
                   ...editJob,
                   tags: editJob.tags.join(", "),
+                  notes: typeof editJob.notes === "string" ? editJob.notes : "",
                 }
               : undefined
           }
@@ -297,6 +311,7 @@ const Dashboard: React.FC = () => {
                 <th className={styles.th}>Date</th>
                 <th className={styles.th}>Tags</th>
                 <th className={styles.th}>Favorite</th>
+                <th className={styles.th}>Notes</th>
                 <th className={styles.th}>Actions</th>
               </tr>
             </thead>
@@ -393,6 +408,52 @@ const Dashboard: React.FC = () => {
                     </button>
                   </td>
                   <td className={styles.td}>
+                    <span
+                      title={
+                        typeof job.notes === "string" && job.notes.trim() !== ""
+                          ? "Note present"
+                          : "No note"
+                      }
+                      style={{ marginRight: 6, verticalAlign: "middle" }}
+                    >
+                      {typeof job.notes === "string" &&
+                      job.notes.trim() !== "" ? (
+                        <span style={{ color: "#2563eb", fontSize: 18 }}>
+                          📝
+                        </span>
+                      ) : (
+                        <span style={{ color: "#bbb", fontSize: 18 }}>—</span>
+                      )}
+                    </span>
+                    <button
+                      className={styles.actionBtn}
+                      style={{
+                        background: "#e8f0fe",
+                        color: "#2563eb",
+                        fontWeight: 600,
+                        border: "1px solid #2563eb",
+                        borderRadius: 6,
+                        padding: "2px 10px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        setNoteModal({
+                          open: true,
+                          note:
+                            typeof job.notes === "string"
+                              ? job.notes
+                              : job.notes === undefined
+                              ? ""
+                              : String(job.notes),
+                        });
+                        noteModalJobId.current = job._id;
+                      }}
+                      type="button"
+                    >
+                      View Note
+                    </button>
+                  </td>
+                  <td className={styles.td}>
                     <div className={styles.actions}>
                       <button
                         className={`${styles.actionBtn} ${styles.edit}`}
@@ -423,6 +484,12 @@ const Dashboard: React.FC = () => {
           </table>
         )}
       </div>
+      {noteModal.open && (
+        <NoteModal
+          note={noteModal.note}
+          onClose={() => setNoteModal({ open: false, note: "" })}
+        />
+      )}
       <div className={styles.section}>
         <div className={styles.chartTitle}>Job Analytics</div>
         <div className={styles.chartsGrid}>
