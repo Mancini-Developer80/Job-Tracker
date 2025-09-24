@@ -115,6 +115,42 @@ const Dashboard: React.FC = () => {
     // Reset file input
     e.target.value = "";
   };
+  // Excel Import
+  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const data = evt.target?.result;
+      if (!data) return;
+      const workbook = XLSX.read(data, { type: "binary" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const json: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+      const importedJobs = json.map((row, idx) => ({
+        _id:
+          row._id && typeof row._id === "string" && row._id.trim() !== ""
+            ? row._id
+            : `imported-excel-${Date.now()}-${idx}`,
+        company: row.company || "",
+        position: row.position || "",
+        status: row.status || "Applied",
+        date: row.date || new Date().toISOString().slice(0, 10),
+        tags: row.tags
+          ? String(row.tags)
+              .split(/,|;/)
+              .map((t: string) => t.trim())
+              .filter(Boolean)
+          : [],
+        notes: row.notes || "",
+        favorite: row.favorite === "true" || row.favorite === true,
+      }));
+      setJobs((prev) => [...importedJobs, ...prev]);
+    };
+    reader.readAsBinaryString(file);
+    e.target.value = "";
+  };
+
   const { user } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -353,9 +389,14 @@ const Dashboard: React.FC = () => {
               Sheets.
             </li>
             <li>
-              Import jobs from a CSV file (e.g., from LinkedIn or another
-              tracker). Imported jobs are added to your dashboard but not saved
-              to the backend.
+              Import jobs from a <b>CSV</b> or <b>Excel (.xlsx, .xls)</b> file
+              (e.g., from LinkedIn, Excel, or another tracker). Imported jobs
+              are added to your dashboard but not saved to the backend.
+            </li>
+            <li>
+              <b>Import Excel</b>: Accepts standard Excel files. The first sheet
+              is used. Columns should match:{" "}
+              <b>company, position, status, date, tags, notes, favorite</b>.
             </li>
             <li>
               CSV columns:{" "}
@@ -395,6 +436,25 @@ const Dashboard: React.FC = () => {
               type="file"
               accept=".csv"
               onChange={handleImportCSV}
+              style={{ display: "none" }}
+            />
+          </label>
+          <label
+            className={styles.button}
+            style={{
+              background: "#a78bfa",
+              color: "#222",
+              cursor: "pointer",
+              marginBottom: 0,
+              minWidth: 120,
+              textAlign: "center",
+            }}
+          >
+            Import Excel
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleImportExcel}
               style={{ display: "none" }}
             />
           </label>
