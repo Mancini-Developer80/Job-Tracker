@@ -21,6 +21,8 @@ import {
   Area,
 } from "recharts";
 import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 type Job = {
   _id: string;
@@ -77,6 +79,41 @@ const Dashboard: React.FC = () => {
       workbook,
       `jobs_export_${new Date().toISOString().slice(0, 10)}.xlsx`
     );
+  };
+
+  // PDF Export
+  const handleExportPDF = () => {
+    if (!jobs.length) return;
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("Job Tracker Export", 14, 16);
+    const columns = [
+      { header: "Company", dataKey: "company" },
+      { header: "Position", dataKey: "position" },
+      { header: "Status", dataKey: "status" },
+      { header: "Date", dataKey: "date" },
+      { header: "Tags", dataKey: "tags" },
+      { header: "Favorite", dataKey: "favorite" },
+      { header: "Notes", dataKey: "notes" },
+    ];
+    const rows = jobs.map(({ _id, tags, favorite, ...job }) => ({
+      ...job,
+      tags: Array.isArray(tags) ? tags.join(", ") : tags,
+      favorite: favorite ? "★" : "",
+    }));
+    autoTable(doc, {
+      startY: 22,
+      head: [columns.map((col) => col.header)],
+      body: rows.map((row) =>
+        columns.map(
+          (col) => (row as Record<string, unknown>)[col.dataKey] || ""
+        )
+      ),
+      styles: { fontSize: 10, cellPadding: 2 },
+      headStyles: { fillColor: [37, 99, 235] },
+      margin: { left: 8, right: 8 },
+    });
+    doc.save(`jobs_export_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   // CSV Import
@@ -419,6 +456,13 @@ const Dashboard: React.FC = () => {
             style={{ background: "#22c55e", color: "#fff", minWidth: 120 }}
           >
             Export Excel
+          </button>
+          <button
+            onClick={handleExportPDF}
+            className={styles.button}
+            style={{ background: "#ef4444", color: "#fff", minWidth: 120 }}
+          >
+            Export PDF
           </button>
           <label
             className={styles.button}
