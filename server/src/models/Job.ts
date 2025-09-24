@@ -7,6 +7,7 @@ export interface IJob extends Document {
   status: "Applied" | "Interview" | "Offer" | "Rejected";
   date: Date;
   tags: string[];
+  favorite?: boolean;
 }
 
 const jobSchema = new Schema<IJob>({
@@ -20,6 +21,7 @@ const jobSchema = new Schema<IJob>({
   },
   date: { type: Date, default: Date.now },
   tags: { type: [String], default: [] },
+  favorite: { type: Boolean, default: false },
 });
 
 export default model<IJob>("Job", jobSchema);

@@ -51,7 +51,7 @@ export const createJob = async (
   }
   try {
     console.log("Job creation req.body:", req.body);
-    const { company, position, status, date, tags } = req.body;
+    const { company, position, status, date, tags, favorite } = req.body;
     const job = await Job.create({
       user: req.user?.id,
       company,
@@ -59,6 +59,7 @@ export const createJob = async (
       status,
       date,
       tags: Array.isArray(tags) ? tags : [],
+      favorite: typeof favorite === "boolean" ? favorite : false,
     });
     console.log("Job created:", job);
     res.status(201).json(job);
@@ -72,6 +73,24 @@ export const updateJob = async (
   res: Response,
   next: NextFunction
 ) => {
+  // If only favorite is present, skip validation
+  if (
+    req.body &&
+    Object.keys(req.body).length === 1 &&
+    Object.prototype.hasOwnProperty.call(req.body, "favorite")
+  ) {
+    try {
+      const job = await Job.findOneAndUpdate(
+        { _id: req.params.id, user: req.user?.id },
+        req.body,
+        { new: true }
+      );
+      if (!job) return res.status(404).json({ message: "Job not found" });
+      return res.json(job);
+    } catch (err) {
+      return next(err);
+    }
+  }
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });

@@ -26,6 +26,7 @@ type Job = {
   status: "Applied" | "Interview" | "Offer" | "Rejected";
   date: string;
   tags: string[];
+  favorite?: boolean;
 };
 
 const STATUS_COLORS: Record<Job["status"], string> = {
@@ -44,6 +45,7 @@ const Dashboard: React.FC = () => {
   const [formKey, setFormKey] = useState(0);
   const [filterStatus, setFilterStatus] = useState("");
   const [search, setSearch] = useState("");
+  const [showFavorites, setShowFavorites] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // Bar chart: applications by company
@@ -173,9 +175,10 @@ const Dashboard: React.FC = () => {
         !search ||
         job.company.toLowerCase().includes(search.toLowerCase()) ||
         job.position.toLowerCase().includes(search.toLowerCase());
-      return matchesStatus && matchesSearch;
+      const matchesFavorite = !showFavorites || job.favorite;
+      return matchesStatus && matchesSearch && matchesFavorite;
     });
-  }, [jobs, filterStatus, search]);
+  }, [jobs, filterStatus, search, showFavorites]);
 
   // Pie chart data
   const chartData = useMemo(() => {
@@ -254,6 +257,33 @@ const Dashboard: React.FC = () => {
             <option value="Offer">Offer</option>
             <option value="Rejected">Rejected</option>
           </select>
+          <label
+            style={{
+              marginLeft: 16,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 15,
+              color: "#333",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={showFavorites}
+              onChange={(e) => setShowFavorites(e.target.checked)}
+              style={{ accentColor: "#fbbf24" }}
+            />
+            <span
+              style={{
+                color: showFavorites ? "#fbbf24" : "#888",
+                fontWeight: 600,
+                fontSize: 18,
+              }}
+            >
+              ★
+            </span>
+            Show only Favorites
+          </label>
         </div>
         {loading ? (
           <div>Loading jobs...</div>
@@ -266,6 +296,7 @@ const Dashboard: React.FC = () => {
                 <th className={styles.th}>Status</th>
                 <th className={styles.th}>Date</th>
                 <th className={styles.th}>Tags</th>
+                <th className={styles.th}>Favorite</th>
                 <th className={styles.th}>Actions</th>
               </tr>
             </thead>
@@ -301,6 +332,67 @@ const Dashboard: React.FC = () => {
                     )}
                   </td>
                   <td className={styles.td}>
+                    <button
+                      title={job.favorite ? "Unstar" : "Star"}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: 22,
+                        color: job.favorite ? "#fbbf24" : "#bbb",
+                        verticalAlign: "middle",
+                        outline: "none",
+                        padding: 0,
+                      }}
+                      onClick={async () => {
+                        // Optimistic UI update
+                        setJobs((prev) =>
+                          prev.map((j) =>
+                            j._id === job._id
+                              ? { ...j, favorite: !job.favorite }
+                              : j
+                          )
+                        );
+                        try {
+                          // Only send favorite for partial update
+                          const res = await fetch(
+                            `${import.meta.env.VITE_API_URL}/api/jobs/${
+                              job._id
+                            }`,
+                            {
+                              method: "PUT",
+                              headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${user?.token}`,
+                              },
+                              body: JSON.stringify({ favorite: !job.favorite }),
+                            }
+                          );
+                          if (!res.ok)
+                            throw new Error("Failed to update favorite");
+                          const updated = await res.json();
+                          setJobs((prev) =>
+                            prev.map((j) =>
+                              j._id === updated._id ? updated : j
+                            )
+                          );
+                        } catch (err) {
+                          setError("Could not update favorite");
+                          // Revert optimistic update on error
+                          setJobs((prev) =>
+                            prev.map((j) =>
+                              j._id === job._id
+                                ? { ...j, favorite: job.favorite }
+                                : j
+                            )
+                          );
+                        }
+                      }}
+                    >
+                      {job.favorite ? "★" : "☆"}
+                    </button>
+                  </td>
+                  <td className={styles.td}>
                     <div className={styles.actions}>
                       <button
                         className={`${styles.actionBtn} ${styles.edit}`}
@@ -322,7 +414,7 @@ const Dashboard: React.FC = () => {
               ))}
               {filteredJobs.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center" }}>
+                  <td colSpan={7} style={{ textAlign: "center" }}>
                     No jobs found.
                   </td>
                 </tr>
