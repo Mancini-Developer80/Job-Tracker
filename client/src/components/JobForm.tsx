@@ -11,11 +11,12 @@ export type JobFormData = {
 };
 
 type JobFormProps = {
-  initialData?: JobFormData;
-  onSubmit: (data: JobFormData) => void;
+  initialData?: JobFormData & Record<string, string>;
+  onSubmit: (data: JobFormData & Record<string, string>) => void;
   submitLabel?: string;
   onCancel?: () => void;
   showCancel?: boolean;
+  customFields?: string[];
 };
 
 const JobForm: React.FC<JobFormProps> = ({
@@ -24,6 +25,7 @@ const JobForm: React.FC<JobFormProps> = ({
   submitLabel = "Add Job",
   onCancel,
   showCancel = false,
+  customFields = [],
 }) => {
   // Format date as YYYY-MM-DD if initialData is present and date is not already in that format
   function formatDate(date: string) {
@@ -36,12 +38,16 @@ const JobForm: React.FC<JobFormProps> = ({
     return d.toISOString().slice(0, 10);
   }
 
-  const [form, setForm] = useState<JobFormData>(
+  const [form, setForm] = useState<JobFormData & Record<string, string>>(
     initialData
       ? {
           ...initialData,
           date: formatDate(initialData.date),
           notes: initialData.notes || "",
+          // Ensure all custom fields are present
+          ...Object.fromEntries(
+            (customFields || []).map((f) => [f, initialData[f] || ""])
+          ),
         }
       : {
           company: "",
@@ -50,19 +56,33 @@ const JobForm: React.FC<JobFormProps> = ({
           date: "",
           tags: "",
           notes: "",
+          ...Object.fromEntries((customFields || []).map((f) => [f, ""])),
         }
   );
 
-  // Update form state when initialData changes (for edit mode)
+  // Update form state when initialData or customFields change (for edit mode)
   useEffect(() => {
     if (initialData) {
       setForm({
         ...initialData,
         date: formatDate(initialData.date),
         notes: initialData.notes || "",
+        ...Object.fromEntries(
+          (customFields || []).map((f) => [f, initialData[f] || ""])
+        ),
+      });
+    } else {
+      setForm({
+        company: "",
+        position: "",
+        status: "Applied",
+        date: "",
+        tags: "",
+        notes: "",
+        ...Object.fromEntries((customFields || []).map((fld) => [fld, ""])),
       });
     }
-  }, [initialData]);
+  }, [initialData, customFields]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -86,6 +106,7 @@ const JobForm: React.FC<JobFormProps> = ({
       date: "",
       tags: "",
       notes: "",
+      ...Object.fromEntries((customFields || []).map((f) => [f, ""])),
     });
   };
 
@@ -182,6 +203,18 @@ const JobForm: React.FC<JobFormProps> = ({
           rows={2}
           style={{ gridColumn: "1 / span 2", resize: "vertical" }}
         />
+        {/* Render custom fields */}
+        {customFields.map((field) => (
+          <input
+            key={field}
+            className={styles.input}
+            name={field}
+            placeholder={field}
+            value={form[field] || ""}
+            onChange={handleChange}
+            style={{ gridColumn: "1 / span 2" }}
+          />
+        ))}
         <div style={{ display: "flex", gap: 8 }}>
           <button className={styles.button} type="submit">
             {submitLabel}
