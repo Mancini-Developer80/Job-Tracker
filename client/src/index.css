@@ -1,4 +1,23 @@
 :root {
+  --color-surface-light: #f8fafc;
+  --color-surface: #f4f7fb;
+  --color-bg: #fff;
+  --color-text: #213547;
+  --color-primary: #2563eb;
+  --color-secondary: #f4f7fb;
+  --color-border: #d0d7de;
+  --color-modal-bg: #fff;
+  --color-modal-text: #444;
+  --color-link: #646cff;
+  --color-link-hover: #535bf2;
+  --color-danger: #e44b5a;
+  --color-danger-dark: #b91c1c;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-favorite: #fbbf24;
+}
+
+:root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -13,18 +32,40 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
-body {
-  border-color: #646cff;
+/* Dark mode overrides */
+body.dark {
+  --color-surface-light: #232c33;
+  --color-bg: #181a1b;
+  --color-text: #f3f4f6;
+  --color-primary: #60a5fa;
+  --color-secondary: #23272f;
+  --color-surface: #232b36;
+  --color-border: #333a44;
+  --color-modal-bg: #23272f;
+  --color-modal-text: #e5e7eb;
+  --color-link: #8ab4f8;
+  --color-link-hover: #a5c9fa;
+  --color-danger: #f87171;
+  --color-danger-dark: #b91c1c;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-favorite: #fbbf24;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
+
+a {
+  color: var(--color-link);
+}
+a:hover {
+  color: var(--color-link-hover);
+}
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;

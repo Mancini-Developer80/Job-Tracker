@@ -3,11 +3,25 @@ import { RoutePath } from "../types/routes";
 import styles from "./Navbar.module.css";
 import { useAuth } from "../context/AuthContext";
 import UserDropdown from "./UserDropdown";
+import { useEffect, useState } from "react";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem("darkMode") === "true";
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add("dark");
+    } else {
+      document.body.classList.remove("dark");
+    }
+    localStorage.setItem("darkMode", darkMode ? "true" : "false");
+  }, [darkMode]);
+
   const handleLogout = () => {
     logout();
     navigate("/", { replace: true });
@@ -40,6 +54,25 @@ const Navbar = () => {
             )}
           </div>
           <div className={styles.navRight}>
+            {/* Dark mode toggle */}
+            <button
+              onClick={() => setDarkMode((d) => !d)}
+              style={{
+                background: darkMode ? "#222" : "#eee",
+                color: darkMode ? "#fff" : "#222",
+                border: "1px solid #bbb",
+                borderRadius: 20,
+                padding: "6px 18px",
+                marginRight: 12,
+                cursor: "pointer",
+                fontWeight: 600,
+                fontSize: 15,
+                transition: "background 0.2s, color 0.2s",
+              }}
+              title="Toggle dark mode"
+            >
+              {darkMode ? "🌙 Dark" : "☀️ Light"}
+            </button>
             {/* User dropdown menu for logged-in users */}
             {user && user.name && (
               <UserDropdown user={user} onLogout={handleLogout} />

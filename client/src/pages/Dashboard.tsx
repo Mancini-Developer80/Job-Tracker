@@ -458,28 +458,31 @@ const Dashboard: React.FC = () => {
         />
       </div>
       {/* 3. Custom Fields */}
-      <div
-        style={{
-          marginBottom: 18,
-          border: "1px solid #e5e7eb",
-          borderRadius: 7,
-          background: "#fff",
-          padding: "10px 14px",
-          boxShadow: "0 1px 4px rgba(30,64,175,0.03)",
-          maxWidth: 600,
-        }}
-      >
+      <div className={styles.customFieldsSection}>
         <div
           style={{
-            fontWeight: 600,
-            color: "#2563eb",
+            fontWeight: 700,
+            color: "var(--color-primary)",
             marginBottom: 4,
-            fontSize: 15,
+            fontSize: 16,
+            letterSpacing: "0.2px",
+            textShadow: "0 1px 2px rgba(0,0,0,0.10)",
           }}
         >
           Custom Fields
         </div>
-        <div style={{ color: "#444", fontSize: 13, marginBottom: 8 }}>
+        <div
+          style={{
+            color: "var(--color-text)",
+            fontSize: 13,
+            marginBottom: 8,
+            background: "var(--color-bg)",
+            borderRadius: 5,
+            padding: "6px 10px",
+            lineHeight: 1.6,
+            boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+          }}
+        >
           Add extra fields to track information unique to your job search (e.g.{" "}
           <b>Salary</b>, <b>Recruiter</b>, <b>Interview Date</b>). Custom fields
           appear in the job form, table, and exports. Remove a field to delete
@@ -500,13 +503,15 @@ const Dashboard: React.FC = () => {
             onChange={(e) => setNewCustomField(e.target.value)}
             placeholder="Add custom field (e.g. Salary)"
             style={{
-              padding: 5,
-              borderRadius: 5,
-              border: "1px solid #bbb",
+              padding: 6,
+              borderRadius: 6,
+              border: "1.5px solid var(--color-border)",
               minWidth: 150,
-              fontSize: 14,
-              background: "#f9fafb",
-              color: "#222", // High-contrast dark color for legibility
+              fontSize: 15,
+              background: "var(--color-bg)",
+              color: "var(--color-text)",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.10)",
+              transition: "background 0.2s, color 0.2s",
             }}
           />
           <button
@@ -514,7 +519,7 @@ const Dashboard: React.FC = () => {
             className={styles.button}
             style={{
               minWidth: 80,
-              background: "#2563eb",
+              background: "var(--color-primary)",
               color: "#fff",
               fontWeight: 500,
               fontSize: 14,
@@ -528,15 +533,15 @@ const Dashboard: React.FC = () => {
             <span
               key={field}
               style={{
-                background: "#f3f4f6",
-                color: "#3730a3",
+                background: "var(--color-bg)",
+                color: "var(--color-primary)",
                 borderRadius: 5,
                 padding: "2px 10px",
                 display: "flex",
                 alignItems: "center",
                 gap: 4,
                 fontSize: 14,
-                border: "1px solid #e0e7ff",
+                border: "1.5px solid var(--color-border)",
               }}
             >
               {field}
@@ -662,18 +667,6 @@ const Dashboard: React.FC = () => {
               onChange={handleImportCSV}
               style={{ display: "none" }}
             />
-          </label>
-          <label
-            className={styles.button}
-            style={{
-              background: "#a78bfa",
-              color: "#222",
-              cursor: "pointer",
-              marginBottom: 0,
-              minWidth: 120,
-              textAlign: "center",
-            }}
-          >
             Import Excel
             <input
               type="file"
