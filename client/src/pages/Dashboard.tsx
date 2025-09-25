@@ -727,198 +727,207 @@ const Dashboard: React.FC = () => {
         {loading ? (
           <div>Loading jobs...</div>
         ) : (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th className={styles.th}>Company</th>
-                <th className={styles.th}>Position</th>
-                <th className={styles.th}>Status</th>
-                <th className={styles.th}>Date</th>
-                <th className={styles.th}>Tags</th>
-                <th className={styles.th}>Favorite</th>
-                <th className={styles.th}>Notes</th>
-                {/* Custom fields headers */}
-                {customFields.map((field) => (
-                  <th className={styles.th} key={field}>
-                    {field}
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th className={styles.th}>Company</th>
+                  <th className={styles.th}>Position</th>
+                  <th className={styles.th}>Status</th>
+                  <th className={styles.th}>Date</th>
+                  <th className={`${styles.th} ${styles["th-tags"]}`}>Tags</th>
+                  <th className={styles.th}>Favorite</th>
+                  <th className={`${styles.th} ${styles["th-notes"]}`}>
+                    Notes
                   </th>
-                ))}
-                <th className={styles.th}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredJobs.map((job) => (
-                <tr key={job._id}>
-                  <td className={styles.td}>{job.company}</td>
-                  <td className={styles.td}>{job.position}</td>
-                  <td className={styles.td}>
-                    <span
-                      style={{
-                        background: STATUS_COLORS[job.status],
-                        color: "#fff",
-                        borderRadius: 8,
-                        padding: "2px 10px",
-                        fontWeight: 600,
-                        fontSize: "0.98em",
-                      }}
-                    >
-                      {job.status}
-                    </span>
-                  </td>
-                  <td className={styles.td}>{job.date?.slice(0, 10)}</td>
-                  <td className={styles.td}>
-                    {job.tags && job.tags.length > 0 ? (
-                      job.tags.map((tag, i) => (
-                        <span key={i} className={styles.tag}>
-                          {tag}
-                        </span>
-                      ))
-                    ) : (
-                      <span style={{ color: "#888" }}>—</span>
-                    )}
-                  </td>
-                  <td className={styles.td}>
-                    <button
-                      title={job.favorite ? "Unstar" : "Star"}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: 22,
-                        color: job.favorite ? "#fbbf24" : "#bbb",
-                        verticalAlign: "middle",
-                        outline: "none",
-                        padding: 0,
-                      }}
-                      onClick={async () => {
-                        // Optimistic UI update
-                        setJobs((prev) =>
-                          prev.map((j) =>
-                            j._id === job._id
-                              ? { ...j, favorite: !job.favorite }
-                              : j
-                          )
-                        );
-                        try {
-                          // Only send favorite for partial update
-                          const res = await fetch(
-                            `${import.meta.env.VITE_API_URL}/api/jobs/${
-                              job._id
-                            }`,
-                            {
-                              method: "PUT",
-                              headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${user?.token}`,
-                              },
-                              body: JSON.stringify({ favorite: !job.favorite }),
-                            }
-                          );
-                          if (!res.ok)
-                            throw new Error("Failed to update favorite");
-                          const updated = await res.json();
-                          setJobs((prev) =>
-                            prev.map((j) =>
-                              j._id === updated._id ? updated : j
-                            )
-                          );
-                        } catch (err) {
-                          setError("Could not update favorite");
-                          // Revert optimistic update on error
+                  {/* Custom fields headers */}
+                  {customFields.map((field) => (
+                    <th className={styles.th} key={field}>
+                      {field}
+                    </th>
+                  ))}
+                  <th className={`${styles.th} ${styles["th-actions"]}`}>
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredJobs.map((job) => (
+                  <tr key={job._id}>
+                    <td className={styles.td}>{job.company}</td>
+                    <td className={styles.td}>{job.position}</td>
+                    <td className={styles.td}>
+                      <span
+                        style={{
+                          background: STATUS_COLORS[job.status],
+                          color: "#fff",
+                          borderRadius: 8,
+                          padding: "2px 10px",
+                          fontWeight: 600,
+                          fontSize: "0.98em",
+                        }}
+                      >
+                        {job.status}
+                      </span>
+                    </td>
+                    <td className={styles.td}>{job.date?.slice(0, 10)}</td>
+                    <td className={`${styles.td} ${styles["td-tags"]}`}>
+                      {job.tags && job.tags.length > 0 ? (
+                        job.tags.map((tag, i) => (
+                          <span key={i} className={styles.tag}>
+                            {tag}
+                          </span>
+                        ))
+                      ) : (
+                        <span style={{ color: "#888" }}>—</span>
+                      )}
+                    </td>
+                    <td className={styles.td}>
+                      <button
+                        title={job.favorite ? "Unstar" : "Star"}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          fontSize: 22,
+                          color: job.favorite ? "#fbbf24" : "#bbb",
+                          verticalAlign: "middle",
+                          outline: "none",
+                          padding: 0,
+                        }}
+                        onClick={async () => {
+                          // Optimistic UI update
                           setJobs((prev) =>
                             prev.map((j) =>
                               j._id === job._id
-                                ? { ...j, favorite: job.favorite }
+                                ? { ...j, favorite: !job.favorite }
                                 : j
                             )
                           );
-                        }
-                      }}
-                    >
-                      {job.favorite ? "★" : "☆"}
-                    </button>
-                  </td>
-                  <td className={styles.td}>
-                    <span
-                      title={
-                        typeof job.notes === "string" && job.notes.trim() !== ""
-                          ? "Note present"
-                          : "No note"
-                      }
-                      style={{ marginRight: 6, verticalAlign: "middle" }}
-                    >
-                      {typeof job.notes === "string" &&
-                      job.notes.trim() !== "" ? (
-                        <span style={{ color: "#2563eb", fontSize: 18 }}>
-                          📝
-                        </span>
-                      ) : (
-                        <span style={{ color: "#bbb", fontSize: 18 }}>—</span>
-                      )}
-                    </span>
-                    <button
-                      className={styles.actionBtn}
-                      style={{
-                        background: "#e8f0fe",
-                        color: "#2563eb",
-                        fontWeight: 600,
-                        border: "1px solid #2563eb",
-                        borderRadius: 6,
-                        padding: "2px 10px",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => {
-                        setNoteModal({
-                          open: true,
-                          note:
-                            typeof job.notes === "string"
-                              ? job.notes
-                              : job.notes === undefined
-                              ? ""
-                              : String(job.notes),
-                        });
-                        noteModalJobId.current = job._id;
-                      }}
-                      type="button"
-                    >
-                      View Note
-                    </button>
-                  </td>
-                  {/* Custom fields values */}
-                  {customFields.map((field) => (
-                    <td className={styles.td} key={field}>
-                      {job.customFields?.[field] || ""}
+                          try {
+                            // Only send favorite for partial update
+                            const res = await fetch(
+                              `${import.meta.env.VITE_API_URL}/api/jobs/${
+                                job._id
+                              }`,
+                              {
+                                method: "PUT",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                  Authorization: `Bearer ${user?.token}`,
+                                },
+                                body: JSON.stringify({
+                                  favorite: !job.favorite,
+                                }),
+                              }
+                            );
+                            if (!res.ok)
+                              throw new Error("Failed to update favorite");
+                            const updated = await res.json();
+                            setJobs((prev) =>
+                              prev.map((j) =>
+                                j._id === updated._id ? updated : j
+                              )
+                            );
+                          } catch (err) {
+                            setError("Could not update favorite");
+                            // Revert optimistic update on error
+                            setJobs((prev) =>
+                              prev.map((j) =>
+                                j._id === job._id
+                                  ? { ...j, favorite: job.favorite }
+                                  : j
+                              )
+                            );
+                          }
+                        }}
+                      >
+                        {job.favorite ? "★" : "☆"}
+                      </button>
                     </td>
-                  ))}
-                  <td className={styles.td}>
-                    <div className={styles.actions}>
+                    <td className={`${styles.td} ${styles["td-notes"]}`}>
+                      <span
+                        title={
+                          typeof job.notes === "string" &&
+                          job.notes.trim() !== ""
+                            ? "Note present"
+                            : "No note"
+                        }
+                        style={{ marginRight: 6, verticalAlign: "middle" }}
+                      >
+                        {typeof job.notes === "string" &&
+                        job.notes.trim() !== "" ? (
+                          <span style={{ color: "#2563eb", fontSize: 18 }}>
+                            📝
+                          </span>
+                        ) : (
+                          <span style={{ color: "#bbb", fontSize: 18 }}>—</span>
+                        )}
+                      </span>
                       <button
-                        className={`${styles.actionBtn} ${styles.edit}`}
-                        onClick={() => setEditJob(job)}
+                        className={styles.actionBtn}
+                        style={{
+                          background: "#e8f0fe",
+                          color: "#2563eb",
+                          fontWeight: 600,
+                          border: "1px solid #2563eb",
+                          borderRadius: 6,
+                          padding: "2px 10px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => {
+                          setNoteModal({
+                            open: true,
+                            note:
+                              typeof job.notes === "string"
+                                ? job.notes
+                                : job.notes === undefined
+                                ? ""
+                                : String(job.notes),
+                          });
+                          noteModalJobId.current = job._id;
+                        }}
                         type="button"
                       >
-                        Edit
+                        View Note
                       </button>
-                      <button
-                        className={`${styles.actionBtn} ${styles.delete}`}
-                        onClick={() => setDeleteId(job._id)}
-                        type="button"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredJobs.length === 0 && (
-                <tr>
-                  <td colSpan={7} style={{ textAlign: "center" }}>
-                    No jobs found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    </td>
+                    {/* Custom fields values */}
+                    {customFields.map((field) => (
+                      <td className={styles.td} key={field}>
+                        {job.customFields?.[field] || ""}
+                      </td>
+                    ))}
+                    <td className={`${styles.td} ${styles["td-actions"]}`}>
+                      <div className={styles.actions}>
+                        <button
+                          className={`${styles.actionBtn} ${styles.edit}`}
+                          onClick={() => setEditJob(job)}
+                          type="button"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className={`${styles.actionBtn} ${styles.delete}`}
+                          onClick={() => setDeleteId(job._id)}
+                          type="button"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {filteredJobs.length === 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: "center" }}>
+                      No jobs found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
       {noteModal.open && (

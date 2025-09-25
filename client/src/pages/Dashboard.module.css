@@ -56,6 +56,21 @@
     gap: 12px;
     padding: 0.7rem 0.5rem 0.7rem 0.5rem;
   }
+  .customFieldsSection {
+    padding: 8px 6px;
+    max-width: 100%;
+    font-size: 0.98em;
+  }
+}
+@media (max-width: 500px) {
+  .filterBox {
+    padding: 0.5rem 0.2rem 0.5rem 0.2rem;
+    font-size: 0.98em;
+  }
+  .customFieldsSection {
+    padding: 6px 2px;
+    font-size: 0.95em;
+  }
 }
 /* Delete confirmation modal styles */
 .modalOverlay {
@@ -213,9 +228,16 @@
   margin-bottom: 1rem;
 }
 
+/* Prevent table x-overflow on small screens */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px;
 }
 
 .th,
@@ -246,4 +268,117 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+/* Responsive: filterBox and customFieldsSection for mobile/tablet */
+@media (max-width: 700px) {
+  .filterBox {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 0.7rem 0.5rem 0.7rem 0.5rem;
+  }
+  .customFieldsSection {
+    padding: 8px 6px;
+    max-width: 100%;
+    font-size: 0.98em;
+  }
+  /* Hide notes, tags, and actions columns by default on mobile */
+  .td-notes,
+  .th-notes,
+  .td-tags,
+  .th-tags,
+  .td-actions,
+  .th-actions {
+    display: none;
+  }
+  /* Reduce padding and font size further for table cells */
+  .th,
+  .td {
+    padding: 0.18rem 0.05rem;
+    font-size: 0.93em;
+    word-break: break-word;
+    max-width: 120px;
+    white-space: normal;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}
+@media (max-width: 500px) {
+  .filterBox {
+    padding: 0.5rem 0.2rem 0.5rem 0.2rem;
+    font-size: 0.98em;
+  }
+  .customFieldsSection {
+    padding: 6px 2px;
+    font-size: 0.95em;
+  }
+  .th,
+  .td {
+    font-size: 0.89em;
+    max-width: 80px;
+  }
+}
+@media (max-width: 900px) {
+  .dashboard {
+    max-width: 98vw;
+    padding: 1.2rem 0.7rem;
+  }
+  .container {
+    max-width: 98vw;
+    padding: 0.7rem 0.2rem;
+  }
+}
+@media (max-width: 600px) {
+  .dashboard {
+    padding: 0.7rem 0.1rem;
+    font-size: 0.97em;
+  }
+  .container {
+    padding: 0.5rem 0.05rem;
+    font-size: 0.97em;
+  }
+}
+@media (max-width: 600px) {
+  .chartsGrid {
+    gap: 0.5rem;
+  }
+  .charts {
+    height: 220px;
+    min-width: 0;
+    padding: 0.2rem;
+  }
+}
+@media (max-width: 700px) {
+  .table {
+    font-size: 0.97em;
+  }
+  .th,
+  .td {
+    padding: 0.35rem 0.12rem;
+    font-size: 0.97em;
+  }
+}
+@media (max-width: 500px) {
+  .table {
+    font-size: 0.95em;
+  }
+  .th,
+  .td {
+    padding: 0.22rem 0.05rem;
+    font-size: 0.95em;
+  }
+}
+@media (max-width: 500px) {
+  .tag {
+    font-size: 0.88em;
+    padding: 1.5px 6px;
+    margin-right: 2px;
+  }
+}
+
+/* Truncate long text with ellipsis for table cells */
+.td,
+.th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

@@ -51,3 +51,35 @@
 .userDropdownMenu button:hover {
   background: #f4f7fb;
 }
+@media (max-width: 700px) {
+  .userDropdownBtn {
+    padding: 4px 10px;
+    font-size: 0.93em;
+    border-radius: 12px;
+    min-width: 0;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    gap: 4px;
+  }
+  .userDropdownMenu {
+    min-width: 110px;
+    font-size: 0.95em;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 500px) {
+  .userDropdownBtn {
+    padding: 2px 6px;
+    font-size: 0.89em;
+    border-radius: 9px;
+    max-width: 80px;
+  }
+  .userDropdownMenu {
+    min-width: 90px;
+    font-size: 0.91em;
+    border-radius: 7px;
+  }
+}

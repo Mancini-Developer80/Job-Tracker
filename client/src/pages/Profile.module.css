@@ -58,3 +58,28 @@
   text-align: center;
   font-weight: 500;
 }
+
+/* Dark mode support for login/profile box */
+body.dark {
+  background: var(--color-bg) !important;
+}
+body.dark .profileBox {
+  background: var(--color-surface) !important;
+  color: var(--color-text) !important;
+  box-shadow: 0 2px 12px rgba(30, 64, 175, 0.18);
+}
+body.dark .form input[type="text"],
+body.dark .form input[type="email"],
+body.dark .form input[type="password"],
+body.dark .form input[type="file"] {
+  background: var(--color-secondary) !important;
+  color: var(--color-text) !important;
+  border: 1.5px solid var(--color-border) !important;
+}
+body.dark .form button {
+  background: var(--color-primary) !important;
+  color: #fff !important;
+}
+body.dark .form label {
+  color: var(--color-text) !important;
+}
