@@ -33,6 +33,7 @@ type Job = {
   tags: string[];
   favorite?: boolean;
   notes?: string;
+  customFields?: Record<string, string>;
 };
 
 const STATUS_COLORS: Record<Job["status"], string> = {
@@ -298,22 +299,31 @@ const Dashboard: React.FC = () => {
       const url = editJob
         ? `${import.meta.env.VITE_API_URL}/api/jobs/${editJob._id}`
         : `${import.meta.env.VITE_API_URL}/api/jobs`;
+      // Collect custom field values
+      const customFieldsObj: Record<string, string> = {};
+      customFields.forEach((field) => {
+        if ((form as any)[field] !== undefined) {
+          customFieldsObj[field] = (form as any)[field];
+        }
+      });
+      const body = {
+        ...form,
+        tags: form.tags
+          ? form.tags
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean)
+          : [],
+        notes: typeof form.notes === "string" ? form.notes : "",
+        customFields: customFieldsObj,
+      };
       const res = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${user?.token}`,
         },
-        body: JSON.stringify({
-          ...form,
-          tags: form.tags
-            ? form.tags
-                .split(",")
-                .map((t) => t.trim())
-                .filter(Boolean)
-            : [],
-          notes: typeof form.notes === "string" ? form.notes : "",
-        }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error("Failed to save job");
       const data = await res.json();
@@ -405,6 +415,151 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className={styles.dashboard}>
+      {/* 2. Job Form */}
+      <div className={styles.section}>
+        {error && (
+          <div
+            style={{
+              color: "#d32f2f",
+              background: "#fff0f0",
+              border: "1px solid #fca5a5",
+              borderRadius: 6,
+              padding: "8px 14px",
+              marginBottom: 12,
+              fontWeight: 500,
+              maxWidth: 600,
+            }}
+          >
+            {error}
+          </div>
+        )}
+        <JobForm
+          key={formKey}
+          onSubmit={handleSubmit}
+          initialData={
+            editJob
+              ? ({
+                  ...editJob,
+                  tags: editJob.tags.join(", "),
+                  notes: typeof editJob.notes === "string" ? editJob.notes : "",
+                  favorite:
+                    editJob.favorite !== undefined
+                      ? String(editJob.favorite)
+                      : "",
+                  // Spread customFields into the form data (not as a nested property)
+                  ...(editJob.customFields ? { ...editJob.customFields } : {}),
+                } as unknown as JobFormData & Record<string, string>)
+              : undefined
+          }
+          submitLabel={editJob ? "Update Job" : "Add Job"}
+          onCancel={editJob ? () => setEditJob(null) : undefined}
+          showCancel={!!editJob}
+          customFields={customFields}
+        />
+      </div>
+      {/* 3. Custom Fields */}
+      <div
+        style={{
+          marginBottom: 18,
+          border: "1px solid #e5e7eb",
+          borderRadius: 7,
+          background: "#fff",
+          padding: "10px 14px",
+          boxShadow: "0 1px 4px rgba(30,64,175,0.03)",
+          maxWidth: 600,
+        }}
+      >
+        <div
+          style={{
+            fontWeight: 600,
+            color: "#2563eb",
+            marginBottom: 4,
+            fontSize: 15,
+          }}
+        >
+          Custom Fields
+        </div>
+        <div style={{ color: "#444", fontSize: 13, marginBottom: 8 }}>
+          Add extra fields to track information unique to your job search (e.g.{" "}
+          <b>Salary</b>, <b>Recruiter</b>, <b>Interview Date</b>). Custom fields
+          appear in the job form, table, and exports. Remove a field to delete
+          it from all jobs.
+        </div>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+            marginBottom: 8,
+            flexWrap: "wrap",
+          }}
+        >
+          <input
+            type="text"
+            value={newCustomField}
+            onChange={(e) => setNewCustomField(e.target.value)}
+            placeholder="Add custom field (e.g. Salary)"
+            style={{
+              padding: 5,
+              borderRadius: 5,
+              border: "1px solid #bbb",
+              minWidth: 150,
+              fontSize: 14,
+              background: "#f9fafb",
+              color: "#222", // High-contrast dark color for legibility
+            }}
+          />
+          <button
+            onClick={handleAddCustomField}
+            className={styles.button}
+            style={{
+              minWidth: 80,
+              background: "#2563eb",
+              color: "#fff",
+              fontWeight: 500,
+              fontSize: 14,
+            }}
+          >
+            Add
+          </button>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {customFields.map((field) => (
+            <span
+              key={field}
+              style={{
+                background: "#f3f4f6",
+                color: "#3730a3",
+                borderRadius: 5,
+                padding: "2px 10px",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                fontSize: 14,
+                border: "1px solid #e0e7ff",
+              }}
+            >
+              {field}
+              <button
+                onClick={() => handleRemoveCustomField(field)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#d32f2f",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                  fontSize: 15,
+                  marginLeft: 2,
+                }}
+                title="Remove"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      </div>
+      {/* 4. Import/Export Section */}
       <div
         style={{
           display: "flex",
@@ -529,143 +684,7 @@ const Dashboard: React.FC = () => {
           </label>
         </div>
       </div>
-      <h2>Dashboard</h2>
-      {error && (
-        <div style={{ color: "#d32f2f", marginBottom: 12 }}>{error}</div>
-      )}
-      <div className={styles.section}>
-        <div
-          style={{
-            marginBottom: 18,
-            border: "1px solid #e5e7eb",
-            borderRadius: 7,
-            background: "#fff",
-            padding: "10px 14px",
-            boxShadow: "0 1px 4px rgba(30,64,175,0.03)",
-            maxWidth: 600,
-          }}
-        >
-          <div
-            style={{
-              fontWeight: 600,
-              color: "#2563eb",
-              marginBottom: 4,
-              fontSize: 15,
-            }}
-          >
-            Custom Fields
-          </div>
-          <div
-            style={{
-              color: "#444",
-              fontSize: 13,
-              marginBottom: 8,
-            }}
-          >
-            Add extra fields to track information unique to your job search
-            (e.g. <b>Salary</b>, <b>Recruiter</b>, <b>Interview Date</b>).
-            Custom fields appear in the job form, table, and exports. Remove a
-            field to delete it from all jobs.
-          </div>
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              alignItems: "center",
-              marginBottom: 8,
-              flexWrap: "wrap",
-            }}
-          >
-            <input
-              type="text"
-              value={newCustomField}
-              onChange={(e) => setNewCustomField(e.target.value)}
-              placeholder="Add custom field (e.g. Salary)"
-              style={{
-                padding: 5,
-                borderRadius: 5,
-                border: "1px solid #bbb",
-                minWidth: 150,
-                fontSize: 14,
-                background: "#f9fafb",
-              }}
-            />
-            <button
-              onClick={handleAddCustomField}
-              className={styles.button}
-              style={{
-                minWidth: 80,
-                background: "#2563eb",
-                color: "#fff",
-                fontWeight: 500,
-                fontSize: 14,
-              }}
-            >
-              Add
-            </button>
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {customFields.map((field) => (
-              <span
-                key={field}
-                style={{
-                  background: "#f3f4f6",
-                  color: "#3730a3",
-                  borderRadius: 5,
-                  padding: "2px 10px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  fontSize: 14,
-                  border: "1px solid #e0e7ff",
-                }}
-              >
-                {field}
-                <button
-                  onClick={() => handleRemoveCustomField(field)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#d32f2f",
-                    cursor: "pointer",
-                    fontWeight: 700,
-                    fontSize: 15,
-                    marginLeft: 2,
-                  }}
-                  title="Remove"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        </div>
-        <JobForm
-          key={formKey}
-          onSubmit={handleSubmit}
-          initialData={
-            editJob
-              ? {
-                  ...editJob,
-                  tags: editJob.tags.join(", "),
-                  notes: typeof editJob.notes === "string" ? editJob.notes : "",
-                  favorite:
-                    editJob.favorite !== undefined
-                      ? String(editJob.favorite)
-                      : "",
-                  // Pass custom fields to form
-                  ...Object.fromEntries(
-                    customFields.map((f) => [f, (editJob as any)[f] || ""])
-                  ),
-                }
-              : undefined
-          }
-          submitLabel={editJob ? "Update Job" : "Add Job"}
-          onCancel={editJob ? () => setEditJob(null) : undefined}
-          showCancel={!!editJob}
-          customFields={customFields}
-        />
-      </div>
+      {/* 5. Job Table and Analytics */}
       <div className={styles.section}>
         <div className={styles.filterBox}>
           <input
@@ -875,7 +894,7 @@ const Dashboard: React.FC = () => {
                   {/* Custom fields values */}
                   {customFields.map((field) => (
                     <td className={styles.td} key={field}>
-                      {(job as any)[field] || ""}
+                      {job.customFields?.[field] || ""}
                     </td>
                   ))}
                   <td className={styles.td}>

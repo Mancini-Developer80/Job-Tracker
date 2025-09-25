@@ -17,6 +17,20 @@ export const getJobs = async (
     // Always return user as user._id (string) for frontend compatibility
     const jobsWithUserId = jobs.map((job) => {
       const jobObj = job.toObject();
+      // Convert customFields Map to plain object if present
+      if (
+        jobObj.customFields &&
+        typeof jobObj.customFields === "object" &&
+        jobObj.customFields !== null
+      ) {
+        if (jobObj.customFields instanceof Map) {
+          jobObj.customFields = Object.fromEntries(
+            jobObj.customFields.entries()
+          );
+        } else {
+          jobObj.customFields = { ...jobObj.customFields };
+        }
+      }
       return {
         ...jobObj,
         user: jobObj.user?.toString?.() || jobObj.user,
@@ -41,6 +55,14 @@ export const getJobById = async (
     });
     if (!job) return res.status(404).json({ message: "Job not found" });
     const jobObj = job.toObject();
+    // Convert customFields Map to plain object if present
+    if (
+      jobObj.customFields &&
+      typeof jobObj.customFields === "object" &&
+      jobObj.customFields instanceof Map
+    ) {
+      jobObj.customFields = Object.fromEntries(jobObj.customFields.entries());
+    }
     res.json({
       ...jobObj,
       user: jobObj.user?.toString?.() || jobObj.user,
@@ -62,7 +84,16 @@ export const createJob = async (
   }
   try {
     console.log("Job creation req.body:", req.body);
-    const { company, position, status, date, tags, favorite, notes } = req.body;
+    const {
+      company,
+      position,
+      status,
+      date,
+      tags,
+      favorite,
+      notes,
+      customFields,
+    } = req.body;
     const job = await Job.create({
       user: req.user?.id,
       company,
@@ -72,9 +103,24 @@ export const createJob = async (
       tags: Array.isArray(tags) ? tags : [],
       favorite: typeof favorite === "boolean" ? favorite : false,
       notes: typeof notes === "string" ? notes : "",
+      customFields:
+        typeof customFields === "object" && customFields !== null
+          ? customFields
+          : {},
     });
     console.log("Job created:", job);
     const jobObj = job.toObject();
+    // Convert customFields Map to plain object if present
+    if (
+      jobObj.customFields &&
+      typeof jobObj.customFields === "object" &&
+      jobObj.customFields !== null &&
+      typeof (jobObj.customFields as any).entries === "function"
+    ) {
+      jobObj.customFields = Object.fromEntries(
+        (jobObj.customFields as any).entries()
+      );
+    }
     res.status(201).json({
       ...jobObj,
       user: jobObj.user?.toString?.() || jobObj.user,
@@ -119,13 +165,29 @@ export const updateJob = async (
     return res.status(400).json({ errors: errors.array() });
   }
   try {
+    // Only allow updating allowed fields, including customFields
+    const update: any = { ...req.body };
+    if (update.customFields && typeof update.customFields === "object") {
+      update.customFields = update.customFields;
+    }
     const job = await Job.findOneAndUpdate(
       { _id: req.params.id, user: req.user?.id },
-      req.body,
+      update,
       { new: true }
     );
     if (!job) return res.status(404).json({ message: "Job not found" });
     const jobObj = job.toObject();
+    // Convert customFields Map to plain object if present
+    if (
+      jobObj.customFields &&
+      typeof jobObj.customFields === "object" &&
+      jobObj.customFields !== null &&
+      typeof (jobObj.customFields as any).entries === "function"
+    ) {
+      jobObj.customFields = Object.fromEntries(
+        (jobObj.customFields as any).entries()
+      );
+    }
     res.json({
       ...jobObj,
       user: jobObj.user?.toString?.() || jobObj.user,

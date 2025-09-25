@@ -44,9 +44,12 @@ const JobForm: React.FC<JobFormProps> = ({
           ...initialData,
           date: formatDate(initialData.date),
           notes: initialData.notes || "",
-          // Ensure all custom fields are present
+          // Ensure all custom fields are present, prefer value from customFields object if present
           ...Object.fromEntries(
-            (customFields || []).map((f) => [f, initialData[f] || ""])
+            (customFields || []).map((f) => [
+              f,
+              ((initialData as any).customFields?.[f] ?? initialData[f]) || "",
+            ])
           ),
         }
       : {
@@ -68,7 +71,10 @@ const JobForm: React.FC<JobFormProps> = ({
         date: formatDate(initialData.date),
         notes: initialData.notes || "",
         ...Object.fromEntries(
-          (customFields || []).map((f) => [f, initialData[f] || ""])
+          (customFields || []).map((f) => [
+            f,
+            ((initialData as any).customFields?.[f] ?? initialData[f]) || "",
+          ])
         ),
       });
     } else {
