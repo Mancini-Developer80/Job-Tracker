@@ -8,7 +8,7 @@ A full-stack web app to manage and analyze your job applications. Features inclu
 
 ## 📸 Screenshots
 
-<!-- Add screenshots or GIFs here -->
+![Job Tracker Dashboard Screenshot](screenshots/chartDashboard.png)
 
 ---
 
@@ -33,6 +33,8 @@ A full-stack web app to manage and analyze your job applications. Features inclu
 
 ## Getting Started
 
+![Job Tracker Dashboard Screenshot](screenshots/landingpage.png)
+
 ### Prerequisites
 
 - Node.js (v18+ recommended)
@@ -42,7 +44,7 @@ A full-stack web app to manage and analyze your job applications. Features inclu
 
 ```bash
 # Clone the repo
- git clone https://github.com/yourusername/job-tracker.git
+ https://github.com/Mancini-Developer80/Job-Tracker.git
  cd job-tracker
 
 # Install client dependencies
@@ -99,4 +101,4 @@ Pull requests are welcome! For major changes, please open an issue first.
 
 ## Author
 
-- [Your Name](https://your-portfolio-link.com)
+- [Giuseppe Mancini](https://mancini-developer80.github.io/MainPortfolio/index.html)
