@@ -83,7 +83,6 @@ export const createJob = async (
     return res.status(400).json({ errors: errors.array() });
   }
   try {
-    console.log("Job creation req.body:", req.body);
     const {
       company,
       position,
@@ -108,7 +107,7 @@ export const createJob = async (
           ? customFields
           : {},
     });
-    console.log("Job created:", job);
+    // console.log("Job created:", job);
     const jobObj = job.toObject();
     // Convert customFields Map to plain object if present
     if (
