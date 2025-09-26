@@ -1,6 +1,6 @@
 # Job Tracker Dashboard
 
-A full-stack job application tracker with analytics, custom fields, import/export, and dark mode. Built with React, TypeScript, Express, and MongoDB.
+A full-stack web app to manage and analyze your job applications. Features include authentication, custom fields, notes, tags, analytics, import/export (CSV, Excel, PDF), and dark mode. Built with React, TypeScript, Express, and MongoDB for a modern, responsive, and customizable job search experience.
 
 ## 🚀 Live Demo
 
