@@ -33,7 +33,7 @@ A full-stack web app to manage and analyze your job applications. Features inclu
 | **Data Processing** | File-saver, ExcelJS, jsPDF |
 | **Charts** | Recharts / Chart.js |
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 src/
